@@ -7,6 +7,7 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
+#include "match_braces.h"
 
 struct node {
   char sym;
