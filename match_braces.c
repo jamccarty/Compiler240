@@ -91,7 +91,7 @@ void print(struct node* top) {
   return;
 }
 
-int check_braces(int argc, char* argv[]) {
+int check_braces(char *filename) {
   FILE *file;
   int isReading = 1;
   int ch;
@@ -100,16 +100,10 @@ int check_braces(int argc, char* argv[]) {
   
   struct node *open_top = NULL;
 
-  if(argc <= 1){
-    printf("ERROR: must enter file name as command line argument\n");
-    //file = fopen("prog1.c", "r");
-    exit(1);
-  }
-
-  file = fopen(argv[1], "r");
+  file = fopen(filename, "r");
 
   if(file == NULL){
-    printf("\nERROR: unable to open file %s\n", argv[1]);
+    printf("\nERROR: unable to open file %s\n", filename);
     //file = fopen("prog1.c", "r");
     exit(1);
   }
@@ -129,9 +123,9 @@ int check_braces(int argc, char* argv[]) {
     }else if(ch == '}'){
       if(open_top == NULL){
         printf("Unmatched brace on Line %d and Column %d\n", line, col);
+        return 1;
       }else{
-        printf("Found matching braces: (%d, %d) -> (%d, %d)\n", open_top->linenum,
-            open_top->colnum, line, col);
+        
         open_top = pop(open_top);
       }
     }else if(ch == '\n'){
