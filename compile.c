@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-char* parse_function_header(){
-
-}
+#include "match_braces.h"
 
 int main(int argc, char** argv){
+    int enough_braces;
     if(argc != 2){
         printf("ERROR: no file inputted\n");
         exit(1);
@@ -20,14 +18,20 @@ int main(int argc, char** argv){
     strcat(compiled_name, ".asm");
 
     FILE *og_file = fopen(argv[1], "r");
+    enough_braces = check_braces(og_file, argv[1]);
     FILE *comp_file = fopen(compiled_name, "w");
 
 
     if(og_file == NULL){
         printf("ERROR: could not find file %s\n", argv[1]);
+        exit(1);
     }
     if(comp_file == NULL){
         printf("ERROR: could not compile file\n");
+        exit(1);
+    }
+    if(enough_braces == 1){
+        exit(1);
     }
 
     return 0;

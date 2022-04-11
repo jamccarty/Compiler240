@@ -92,16 +92,13 @@ void print(struct node* top) {
   return;
 }
 
-int check_braces(char *filename) {
-  FILE *file;
+int check_braces(FILE *file, char *filename) {
   int isReading = 1;
   int ch;
   int col = 0;
   int line = 1;
   
   struct node *open_top = NULL;
-
-  file = fopen(filename, "r");
 
   if(file == NULL){
     printf("\nERROR: unable to open file %s\n", filename);
@@ -126,7 +123,6 @@ int check_braces(char *filename) {
         printf("Unmatched brace on Line %d and Column %d\n", line, col);
         return 1;
       }else{
-        
         open_top = pop(open_top);
       }
     }else if(ch == '\n'){
