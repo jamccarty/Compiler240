@@ -4,6 +4,7 @@
 // Identify matched braces from a given file
 // Name: Jac McCarty
 // Created: Feb. 12 2022
+// Modified: April 11, 2022
 //
 #include <stdio.h>
 #include <stdlib.h>
