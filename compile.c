@@ -3,48 +3,7 @@
 #include <string.h>
 #include "match_braces.h"
 
-char* parse_function_header(FILE *file){
-
-}
-
-int line_helper(char *line, char *var_name, void *stored, int line_num){
-    char *whitespace = " \t\f\r\v\n";
-    char *token = strtok(line, whitespace);
-
-    var_name = strtok(NULL, whitespace);
-    if(var_name == NULL){
-        printf("ERROR, line %d: no variable name specified/n", line_num);
-        exit(1);
-    }else{
-        int name_len = strlen(var_name);
-        if(var_name[name_len - 1] == ';'){
-            var_name[name_len - 1] == '\0';
-            return 0;
-        }else if(var_name[name_len - 1] == ','){
-            int count = 0;
-            var_name[name_len - 1] == '\0';
-            char *next_var = strtok(NULL, whitespace);
-            while(next_var != NULL){
-                int next_len = strlen(next_var);
-                char *temp_var = strtok(NULL, whitespace);
-                
-                if(next_var[next_len-1] != ',' && next_var[next_len-1] != ';'){
-                    printf("ERROR on line %d: improper syntax for variable declaration\n", line_num);
-                    exit(1);
-                }else if(next_var[next_len-1] == ';' && strtok(NULL, whitespace) != NULL){
-                    printf("ERROR on line %d: line continues past ';'\n", line_num);
-                }
-                next_var[next_len - 1] = '\0';
-                strcat(var_name, next_var);
-                strcpy(next_var, temp_var);
-            }
-            
-            return 1;
-        }else{
-            
-        }
-    }
-    
+char** parse_function_header(FILE *file){
 
 }
 
