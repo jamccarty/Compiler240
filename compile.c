@@ -3,21 +3,12 @@
 #include <string.h>
 #include "match_braces.h"
 
-char** parse_function_header(FILE *file){
+char* parse_function_header(char* line){
 
 }
 
-char* parse_line_programs(char *line, char type, void *stored){
-    char *whitespace = " \t\f\r\v\n";
-    char *token;
-    char *var_name;
-    token = strtok(line, whitespace);
-    while(token != NULL){
-        if(token == "int"){
-            type = 'i';
-
-        }
-    }
+char* parse_line_programs(FILE *file){
+    
 }
 
 int main(int argc, char** argv){
