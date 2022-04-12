@@ -1,6 +1,6 @@
 CC=gcc
 % :: %.c
-	$(CC) -g -Wall -Wvla -Werror $< -o $@
+	$(CC) -g -Wall -Wvla -Werror $< -o $@ -lm
 
-test_ppm : compile.c match_braces.c
+compile : compile.c match_braces.c
 	$(CC) -g -Wall -Wvla -Werror compile.c match_braces.c -o $@
