@@ -6,6 +6,12 @@
 char** parse_function_header(char* line){
   char *whitespace = " \t\f\r\v\n";
   char *token = strtok(line, whitespace);
+  char **array = malloc(sizeof(char) * 50);
+  
+  for(int i = 0; i < 50; i++){
+    array[i] = malloc(sizeof(char) * 150);
+    memset(array[i], '\0', 149);
+  }
   
   int i = 0;
 
@@ -36,23 +42,35 @@ char** parse_function_header(char* line){
           exit(1);
         }
       }
+      if(token == ")"){
+        return array;
+      }
     }
     token = strtok(NULL, whitespace);
-
-    if (token == ")") {
-      
-    }
   }
-  
   return NULL;
 }
 
 char* parse_line_programs(FILE *file){
+    char *whitespace = " \t\f\r\v\n";
     char *line = malloc(sizeof(char) * 150);
-    char **
+    char **vars;
     
-    fgets(line, 150, file);
-    parse_function_header()
+    line = fgets(line, 150, file);
+    vars = parse_function_header(line);
+
+    if (vars == NULL){
+      
+      char *token = strtok(line, whitespace);
+      if(token == NULL){
+        printf("ERROR\n");
+        exit(1);
+      }
+      if(token == "int"){
+        token = strtok(NULL, whitespace);
+        if(token )
+      }
+    }
 }
 
 int main(int argc, char** argv){
