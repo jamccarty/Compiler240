@@ -3,7 +3,7 @@
 #include <string.h>
 #include "match_braces.h"
 
-void parse_function_header(char* line, char** array){
+char** parse_function_header(char* line){
   char *whitespace = " \t\f\r\v\n";
   char *token = strtok(line, whitespace);
   
@@ -48,7 +48,11 @@ void parse_function_header(char* line, char** array){
 }
 
 char* parse_line_programs(FILE *file){
+    char *line = malloc(sizeof(char) * 150);
+    char **
     
+    fgets(line, 150, file);
+    parse_function_header()
 }
 
 int main(int argc, char** argv){
