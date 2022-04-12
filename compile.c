@@ -3,8 +3,48 @@
 #include <string.h>
 #include "match_braces.h"
 
-char* parse_function_header(char* line){
+void parse_function_header(char* line, char** array){
+  char *whitespace = " \t\f\r\v\n";
+  char *token = strtok(line, whitespace);
+  
+  int i = 0;
 
+  while (token != NULL) {
+    if (token == "(") {
+      token = strtok(NULL, whitespace);
+
+      if (token == NULL) {
+        printf("Error: No parameters!\n");
+        exit(1);
+      } else if (token != "int") {
+        printf("Error: No declaration!\n");
+        exit(1);
+      }
+      token = strtok(NULL, whitespace);
+      strcpy(array[i], token);
+      i++;
+      
+      token = strtok(NULL, whitespace);
+      
+      if (token == ",") {
+        token = strtok(NULL, whitespace);
+        if (token == NULL) {
+          printf("Error: No parameters!\n");
+          exit(1);
+        } else if (token != "int") {
+          printf("Error: No declaration!\n");
+          exit(1);
+        }
+      }
+    }
+    token = strtok(NULL, whitespace);
+
+    if (token == ")") {
+      
+    }
+  }
+  
+  return NULL;
 }
 
 char* parse_line_programs(FILE *file){
