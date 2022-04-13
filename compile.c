@@ -3,15 +3,50 @@
 #include <string.h>
 #include "match_braces.h"
 
-char** parse_function_header(char* line){
+char** return_var_array(char *line, int linenum){
   char *whitespace = " \t\f\r\v\n";
-  char *token = strtok(line, whitespace);
-  char **array = malloc(sizeof(char) * 50);
-  
+  char **array = malloc(sizeof(char *) * 50);
+
   for(int i = 0; i < 50; i++){
     array[i] = malloc(sizeof(char) * 150);
-    memset(array[i], '\0', 149);
+    memset(array[i], "\0", 149);
   }
+  char *token = strtok(NULL, whitespace);
+  if(token == NULL){
+    printf("Formatting error on line %d\n", linenum);
+    exit(1);
+  }
+
+  strcpy(array[0], token);
+
+  token = strtok(NULL, whitespace);
+  int numvars = 0;
+
+  while(token == ","){
+    numvars++;
+    token = strtok(NULL, whitespace);
+    if(token == NULL){
+      printf("Formatting error on line %d\n", linenum);
+      exit(1);
+    }
+
+    strcpy(array[numvars], token);
+    token = strtok(NULL, whitespace);
+
+    if(token == NULL){
+      printf("Formatting error on line %d - ';' expected\n");
+      exit(1);
+    }
+  }
+
+  return array;
+
+}
+
+char** parse_function_header(char* line, int linenum){
+  char *whitespace = " \t\f\r\v\n";
+  char *token = strtok(line, whitespace);
+  char **array;
   
   int i = 0;
 
@@ -26,50 +61,35 @@ char** parse_function_header(char* line){
         printf("Error: No declaration!\n");
         exit(1);
       }
-      token = strtok(NULL, whitespace);
-      strcpy(array[i], token);
-      i++;
-      
-      token = strtok(NULL, whitespace);
-      
-      if (token == ",") {
-        token = strtok(NULL, whitespace);
-        if (token == NULL) {
-          printf("Error: No parameters!\n");
-          exit(1);
-        } else if (token != "int") {
-          printf("Error: No declaration!\n");
-          exit(1);
-        }
-      }
-      if(token == ")"){
-        return array;
-      }
+      array = return_var_array(line, linenum);
     }
     token = strtok(NULL, whitespace);
   }
   return NULL;
 }
 
-char* parse_line_programs(FILE *file){
+char** parse_line_programs(FILE *file){
     char *whitespace = " \t\f\r\v\n";
-    char *line = malloc(sizeof(char) * 150);
-    char **vars;
-    
-    line = fgets(line, 150, file);
-    vars = parse_function_header(line);
+    char *line = NULL;
+    char **all_vars = malloc(sizeof(char*) * 150);
+    ssize_t read;
+    ssize_t length = 0;
+    int linenum = 0;
 
-    if (vars == NULL){
-      
-      char *token = strtok(line, whitespace);
-      if(token == NULL){
-        printf("ERROR\n");
-        exit(1);
-      }
-      if(token == "int"){
-        token = strtok(NULL, whitespace);
-        if(token )
-      }
+    while(read = getline(&line, &length, file) != -1){
+        char **line_vars;
+        linenum++;
+        line_vars = parse_function_header(line, linenum);
+        if(line_vars == NULL){
+          char *token = strtok(line, whitespace);
+          if(token == NULL){
+            printf("ERROR\n");
+            exit(1);
+          }
+          if(token == "int"){
+            line_vars = return_var_array(line, linenum);
+          }
+        }
     }
 }
 
@@ -103,6 +123,5 @@ int main(int argc, char** argv){
     if(enough_braces == 1){
         exit(1);
     }
-
     return 0;
 }
