@@ -11,9 +11,15 @@ char** return_var_array(char *line, int linenum){
     array[i] = malloc(sizeof(char) * 150);
     memset(array[i], (int)'\0', 149);
   }
+
+  //why are we tokening again if the previous token was at the word we need to
+  //put in the array?
+  //Also random, but would we need to token again since the data isn't kept or
+  //is it kept?
   char *token = strtok(NULL, whitespace);
+
   if(token == NULL){
-    printf("Formatting error on line %d\n", linenum);
+    printf("Error: Formatting error on line %d\n", linenum);
     exit(1);
   }
 
@@ -25,18 +31,33 @@ char** return_var_array(char *line, int linenum){
   while(strcmp(token, ",") == 0){
     numvars++;
     token = strtok(NULL, whitespace);
-    if(token == NULL){
-      printf("Formatting error on line %d\n", linenum);
+
+    if(token == NULL){ //shouldn't this be if token != "int" since it's not just NULL?
+      printf("Error: Formatting error on line %d\n", linenum);
       exit(1);
     }
 
+    //need to token again to get the real name of the variable to put in array,
+    //I think?
     strcpy(array[numvars], token);
     token = strtok(NULL, whitespace);
 
-    if(token == NULL){
+    /*if(token == NULL){
       printf("Formatting error on line %d - ';' expected\n", linenum);
       exit(1);
+    }*/
+
+    ////
+    if (strcmp(token, ")") == 0) {
+      break;
     }
+  }
+  
+  token = strtok(NULL, whitespace);
+
+  if (strcmp(token, "{") == 0) {
+    printf("Error: Add bracket after parentheses.\n");
+    exit(1);
   }
 
   return array;
@@ -70,9 +91,11 @@ char** parse_function_header(char* line, int linenum){
     }
     token = strtok(NULL, whitespace);
   }
-  if(array[0][0] == 0){
+
+  if (array[0][0] == 0) { //wouldn't this mean the array has to be calloced for 0?
     return NULL;
   }
+
   return array;
 }
 
