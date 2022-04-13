@@ -9,7 +9,7 @@ char** return_var_array(char *line, int linenum){
 
   for(int i = 0; i < 50; i++){
     array[i] = malloc(sizeof(char) * 150);
-    memset(array[i], "\0", 149);
+    memset(array[i], (int)'\0', 149);
   }
   char *token = strtok(NULL, whitespace);
   if(token == NULL){
@@ -22,7 +22,7 @@ char** return_var_array(char *line, int linenum){
   token = strtok(NULL, whitespace);
   int numvars = 0;
 
-  while(token == ","){
+  while(strcmp(token, ",") == 0){
     numvars++;
     token = strtok(NULL, whitespace);
     if(token == NULL){
@@ -34,7 +34,7 @@ char** return_var_array(char *line, int linenum){
     token = strtok(NULL, whitespace);
 
     if(token == NULL){
-      printf("Formatting error on line %d - ';' expected\n");
+      printf("Formatting error on line %d - ';' expected\n", linenum);
       exit(1);
     }
   }
@@ -47,17 +47,15 @@ char** parse_function_header(char* line, int linenum){
   char *whitespace = " \t\f\r\v\n";
   char *token = strtok(line, whitespace);
   char **array;
-  
-  int i = 0;
 
   while (token != NULL) {
-    if (token == "(") {
+    if (strcmp(token, "(") == 0) {
       token = strtok(NULL, whitespace);
 
       if (token == NULL) {
         printf("Error: No parameters!\n");
         exit(1);
-      } else if (token != "int") {
+      } else if (strcmp(token, "int") != 0) {
         printf("Error: No declaration!\n");
         exit(1);
       }
@@ -65,7 +63,10 @@ char** parse_function_header(char* line, int linenum){
     }
     token = strtok(NULL, whitespace);
   }
-  return NULL;
+  if(array[0][0] == 0){
+    return NULL;
+  }
+  return array;
 }
 
 char** parse_line_programs(FILE *file){
@@ -86,7 +87,7 @@ char** parse_line_programs(FILE *file){
             printf("ERROR\n");
             exit(1);
           }
-          if(token == "int"){
+          if(strcmp(token, "int") == 0){
             line_vars = return_var_array(line, linenum);
           }
         }
