@@ -48,13 +48,6 @@ char** parse_function_header(char* line, int linenum){
   char *token = strtok(line, whitespace);
   char **array;
 
-  if (strcmp(token, "int") != 0) {
-    printf("Error: function is missing return type.\n");
-    exit(1);
-  }
-
-  token = strtok(line, whitespace);
-
   while (token != NULL) {
     if (strcmp(token, "(") == 0) {
       token = strtok(NULL, whitespace);
