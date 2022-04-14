@@ -37,9 +37,10 @@ char** parse_line(const char* filename) {
 
   fgets(line, 100, file);
 
-  while (!EOF) {
+  while (line != NULL) {
     token = strtok(line, whitespace);
-    if (strcmp(token, "int") != 0) {
+    printf("%s\n", token);
+      if (strcmp(token, "int") != 0) {
       printf("Error: Need to declare variable type!\n");
       exit(1);
     }
@@ -72,8 +73,6 @@ char** parse_line(const char* filename) {
       //NEED TO HANDLE NUMBERS AND CHECK IF A VARIABLE EQUALS A VARIABLE THAT
       //THE VARIABLE IS DECLARED.
     }
-
-    fgets(line, 100, file);
   }
 
   free(line);
