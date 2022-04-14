@@ -41,7 +41,7 @@ char** parse_line(const char* filename) {
       printf("Error: Need to declare variable type!\n");
       exit(1);
     }
-    
+
     token = strtok(NULL, whitespace);
     if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
       (strcmp(token, ",") == 0)) {

@@ -43,7 +43,7 @@ char** parse_function_header(const char* filename) {
     printf("Error: Need to declare return type for function!\n");
     exit(1);
   }
-  
+ 
   token = strtok(NULL, whitespace);
   if (strcmp(token, "(") == 0) {
     printf("Error: Missing a function name.\n");
