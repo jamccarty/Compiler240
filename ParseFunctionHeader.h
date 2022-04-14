@@ -1,7 +1,3 @@
-//
-// Created: April 13,2022 by Jac McCarty
-// 
-
 #ifndef PARSEFUNCTIONHEADER_H_
 #define PARSEFUNCTIONHEADERs_H_
 
