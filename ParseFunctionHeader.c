@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ParseFunctionHeader.h"
 
 char** parse_function_header(const char* filename) {
   FILE *file;
