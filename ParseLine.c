@@ -11,7 +11,7 @@ char** parse_line(const char* filename) {
   int j = 0;
 
   line = malloc(sizeof(char) * 150);
-
+ 
   if (line == NULL) {
     printf("Error: malloc failed!\n");
     exit(1);
