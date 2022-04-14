@@ -4,21 +4,21 @@
 
 char** parse_line(const char* filename) {
   FILE *file;
-  char *whitespace = " \t\f\r\v\n";
+  char  *whitespace = " \t\f\r\v\n";
   char *token;
   char **array;
   char *line = NULL;
   int j = 0;
 
   line = malloc(sizeof(char) * 150);
-
+  
   if (line == NULL) {
     printf("Error: malloc failed!\n");
     exit(1);
   }
 
   array = malloc(sizeof(char*) * 100);
-
+  
   for (int i = 0; i < 100; i++) {
     array[i] = malloc(sizeof(char) * 150);
     memset(array[i], (int)'\0', 149);
@@ -35,29 +35,16 @@ char** parse_line(const char* filename) {
     exit(1);
   }
 
-  fgets(line, 100, file);
-
-  while (line != NULL) {
+  while (fgets(line, 100, file) != NULL) {
     token = strtok(line, whitespace);
-
-    if(token == NULL){
-      break;
-    }
-
-    printf("%s\n", token);
     if (strcmp(token, "int") != 0) {
       printf("Error: Need to declare variable type!\n");
       exit(1);
     }
     
     token = strtok(NULL, whitespace);
-
-    if(token == NULL){
-      break;
-    }
-
-    if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0) ||
-      (strcmp(token, "=") == 0)) {
+    if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
+      (strcmp(token, ",") == 0)) {
       printf("Error: Need to declare variable name!\n");
       exit(1);
     } else {
@@ -66,40 +53,50 @@ char** parse_line(const char* filename) {
     }
 
     token = strtok(NULL, whitespace);
-    if(token != NULL){
-      while (strcmp(token, ",") == 0) {
-        if ((strcmp(token, "=") == 0) || (strcmp(token, ";") == 0)) {
+    while (1) {
+      if (strcmp(token, ",") == 0) {
+        token = strtok(NULL, whitespace);
+        if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
+          (strcmp(token, ",") == 0)) {
           printf("Error: Need to declare variable name!\n");
           exit(1);
+        } else {
+          strcpy(array[j], token);
+          j++;
         }
-        
         token = strtok(NULL, whitespace);
-        strcpy(array[j], token);
-        j++;
-      
-        token = strtok(NULL, whitespace);
-      } 
-      
-      if (strcmp(token, "=") == 0) {
-        //NEED TO HANDLE NUMBERS AND CHECK IF A VARIABLE EQUALS A VARIABLE THAT
-        //THE VARIABLE IS DECLARED.
+      } else { 
+        break;
       }
     }
-    
-    fgets(line, 100, file);
-    //free(templine);
-    //templine = NULL;
+
+    if (strcmp(token, "=") == 0) {
+      token = strtok(NULL, whitespace);
+      token = strtok(NULL, whitespace);
+      while (1) {
+        if (strcmp(token, ",") == 0) {
+          token = strtok(NULL, whitespace);
+          strcpy(array[j], token);
+          j++;
+        } else if (strcmp(token, "+") == 0) {
+          token = strtok(NULL, whitespace);
+        } else if (strcmp(token, ";") == 0) {
+          break;
+        }
+        token = strtok(NULL, whitespace);
+      }
+    }
   }
 
   free(line);
   line = NULL;
-  
-  fclose(file);
 
+  fclose(file);
+  
   return array;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   char **param_array;
   int i = 0;
 
@@ -112,13 +109,13 @@ int main(int argc, char** argv) {
   }
 
   param_array = parse_line(argv[1]);
-  
+
   if (param_array[i][0] != '\0') {
     printf("All variable names declared: \n");
     
     while (param_array[i][0] != '\0') {
       printf("%s\n", param_array[i]);
-      i++; 
+      i++;
     }
   } else {
     printf("There are no variable names declared.\n");
@@ -130,6 +127,7 @@ int main(int argc, char** argv) {
   }
 
   free(param_array);
-  param_array = NULL; 
+  param_array = NULL;
+
   return 0;
 }

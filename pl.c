@@ -35,8 +35,6 @@ char** parse_line(const char* filename) {
     exit(1);
   }
 
-  //fgets(line, 100, file);
-
   while (fgets(line, 100, file) != NULL) {
     token = strtok(line, whitespace);
     if (strcmp(token, "int") != 0) {
@@ -67,12 +65,33 @@ char** parse_line(const char* filename) {
           j++;
         }
         token = strtok(NULL, whitespace);
-      } else {
+      } else { 
         break;
       }
     }
-    //fgets(line, 100, file);
+
+    if (strcmp(token, "=") == 0) {
+      token = strtok(NULL, whitespace);
+      token = strtok(NULL, whitespace);
+      while (1) {
+        if (strcmp(token, ",") == 0) {
+          token = strtok(NULL, whitespace);
+          strcpy(array[j], token);
+          j++;
+        } else if (strcmp(token, "+") == 0) {
+          token = strtok(NULL, whitespace);
+        } else if (strcmp(token, ";") == 0) {
+          break;
+        }
+        token = strtok(NULL, whitespace);
+      }
+    }
   }
+
+  free(line);
+  line = NULL;
+
+  fclose(file);
   
   return array;
 }
@@ -94,20 +113,21 @@ int main(int argc, char **argv) {
   if (param_array[i][0] != '\0') {
     printf("All variable names declared: \n");
     
-    while (param_array[i][0] != '\0') {                                          
-      printf("%s\n", param_array[i]);                                            
-      i++;                                                                       
-    }                                                                            
-  } else {                                                                       
-    printf("There are no variable names declared.\n");                           
-  }                                                                              
-                                                                                 
-  for (int j = 0; j < 100; j++) {                                                
-    free(param_array[j]);                                                        
-    param_array[j] = NULL;                                                       
-  }                                                                              
-                                                                                 
-  free(param_array);                                                             
-  param_array = NULL;                                                            
+    while (param_array[i][0] != '\0') {
+      printf("%s\n", param_array[i]);
+      i++;
+    }
+  } else {
+    printf("There are no variable names declared.\n");
+  }
+
+  for (int j = 0; j < 100; j++) {
+    free(param_array[j]);
+    param_array[j] = NULL;
+  }
+
+  free(param_array);
+  param_array = NULL;
+
   return 0;
 }
