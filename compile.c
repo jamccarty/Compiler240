@@ -106,14 +106,21 @@ char** parse_function_header(char* line, int linenum){
 
 char** parse_line_programs(FILE *file){
   char *whitespace = " \t\f\r\v\n";
-  char *line = NULL;
+  char *line = malloc(sizeof(char) * 150);
+
+  if(line == NULL){
+    printf("Unable to allocate line\n");
+    exit(1);
+  }
   char **all_vars = malloc(sizeof(char*) * 150);
-  ssize_t read;
-  ssize_t length = 0;
+  ssize_t characters;
+  ssize_t linesize = 150;
   int linenum = 0;
 
-  while(read = getline(&line, &length, file) != -1){
-    char **line_vars;
+  characters = getline(&line, &linesize, file);
+
+  while(characters != -1){
+    char** line_vars;
     linenum++;
     line_vars = parse_function_header(line, linenum);
     
@@ -129,6 +136,7 @@ char** parse_line_programs(FILE *file){
         line_vars = return_var_array(line, linenum);
       }
     }
+    characters = getline(&line, &linesize, file);
   }
   
   return all_vars;
