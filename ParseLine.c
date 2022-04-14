@@ -38,9 +38,6 @@ char** parse_line(const char* filename) {
   fgets(line, 100, file);
 
   while (line != NULL) {
-    //char *templine = malloc(sizeof(line) + sizeof(char));
-    //memset(templine, 0, sizeof(line) + sizeof(char));
-    //templine = strcpy(templine, line);
     token = strtok(line, whitespace);
     printf("%s\n", token);
     if (strcmp(token, "int") != 0) {
