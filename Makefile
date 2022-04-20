@@ -4,3 +4,6 @@ CC=gcc
 
 testMap: testMap.c Map.c
 	$(CC) -g -Wall -Wvla -Werror testMap.c Map.c -o $@ -lm
+
+CreateSymbolTable: CreateSymbolTable.c Map.c
+	$(CC) -g -Wall -Wvla -Werror CreateSymbolTable.c Map.c -o $@ -lm
