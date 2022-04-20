@@ -15,12 +15,18 @@ struct pair* createMap(const int size){
 void mapAdd(struct pair *map, char* key, int value, const int size){
     int len = strlen(key);
     int hash = 0;
+    int count = 0;
     for(int i = 0; i < len; i++){
         hash = hash + (int)(key[i]);
     }
     hash = hash % size;
     while(map[hash].key != NULL){
         hash++;
+        count++;
+        if(count == size){
+            printf("ERROR: not enough space to add new pair (%s, %d)\n", key, value);
+            exit(1);
+        }
         if(hash == size){
             hash = 0;
         }
@@ -52,4 +58,3 @@ int mapGetValue(struct pair* map, char* key, const int size){
     }
     return map[hash].value;
 }
-
