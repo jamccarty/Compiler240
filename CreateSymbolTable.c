@@ -102,9 +102,8 @@ char** parse_line(FILE *file, int *len) {
                 token = strtok(NULL, whitespace);
 
                 if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0) ||
-                  (strcmp(token, "=")) || (strcmp(token, "+"))) {
-                  printf("Error: Need to declare a variable or value after
-                  equal sign!\n");
+                  (strcmp(token, "=") == 0) || (strcmp(token, "+") == 0)) {
+                  printf("Error: Need to declare a variable or value after equal sign!\n");
                   exit(1);
                 }
                 
@@ -243,7 +242,7 @@ struct pair* createSymbolTable(FILE *file){
     int local_vars_len;
 
     int size = 2 * (params_len + local_vars_len);
-    struct pair *symbol_table = createMap(size));
+    struct pair *symbol_table = createMap(size);
 
     params = parse_function_header(file, &params_len);
     local_vars = parse_line(file, &local_vars_len);
