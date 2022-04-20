@@ -5,17 +5,14 @@
 int main(){
     int size = 5;
     struct pair *map = createMap(size);
-    mapAdd(map, "a", 1, size);
-    mapAdd(map, "b", 2, size);
-    mapAdd(map, "c", 3, size);
 
-    for(char i = 0; i < (char)size; i++){
-        printf("%s\n", pairString(map[(int)i]));
-        char a = i + 'a';
-        char str[3];
-        str[0] = a;
-        str[1] = '\0';
-        printf("mapGetValue(%s) = %d\n", str, mapGetValue(map, str, size)); 
-    }
+    mapAdd(map, "hello", 15, size);
+    mapAdd(map, "wonder", 100, size);
+    mapAdd(map, "abcd", -3, size);
+
+    printf("mapGetValue(%s) = %d\n", "hello", mapGetValue(map, "hello", size)); 
+    printf("mapGetValue(%s) = %d\n", "wonder", mapGetValue(map, "wonder", size));
+    printf("mapGetValue(%s) = %d\n", "abcd", mapGetValue(map, "abcd", size));
+    printf("mapGetValue(%s) = %d\n", "doesn't exist", mapGetValue(map, "doesn't exist", size));
     return 1;
 }

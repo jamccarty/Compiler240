@@ -26,7 +26,7 @@ void mapAdd(struct pair *map, char* key, int value, const int size){
         }
     }
     map[hash].key = key;
-    map[hash].key = key;
+    map[hash].value = value;
 }
 
 int mapGetValue(struct pair* map, char* key, const int size){
@@ -37,11 +37,13 @@ int mapGetValue(struct pair* map, char* key, const int size){
     }
     hash = hash % size;
     if(map[hash].key == NULL){
+        printf("Alert: '%s' does not exist in map. Returning 0\n", key);
         return 0;
     }
     while(strcmp(map[hash].key, key) != 0){
         hash++;
         if(map[hash].key == NULL){
+            printf("Alert: '%s' does not exist in map. Returning 0\n", key);
             return 0;
         }
         if(hash == size){
@@ -49,12 +51,5 @@ int mapGetValue(struct pair* map, char* key, const int size){
         }
     }
     return map[hash].value;
-}
-
-char *pairString(struct pair p){
-    char *ret = malloc(sizeof(char) * 50);
-    memset(ret, '\0', 50);
-    sprintf(ret, "(%s, %d)", p.key, p.value);
-    return ret;
 }
 
