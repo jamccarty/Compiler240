@@ -14,5 +14,6 @@ int main(){
     printf("mapGetValue(%s) = %d\n", "wonder", mapGetValue(map, "wonder", size));
     printf("mapGetValue(%s) = %d\n", "abcd", mapGetValue(map, "abcd", size));
     printf("mapGetValue(%s) = %d\n", "doesn't exist", mapGetValue(map, "doesn't exist", size));
+    printf("\nSymbol Table:\n%s", mapToString(map, size));
     return 1;
 }

@@ -58,3 +58,18 @@ int mapGetValue(struct pair* map, char* key, const int size){
     }
     return map[hash].value;
 }
+
+char *mapToString(struct pair *map, int size){
+    char *ret = malloc(sizeof(char) * 50 * size);
+    char *add = malloc(sizeof(char) * 50);
+    for(int i = 0; i < size; i++){
+        if(map[i].key != NULL){
+            memset(add, '\0', 50);
+            sprintf(add, "%s %d\n", map[i].key, map[i].value);
+            strcat(ret, add);
+        }
+    }
+    free(add);
+    add = NULL;
+    return ret;
+}
