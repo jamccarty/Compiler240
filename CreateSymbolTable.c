@@ -251,12 +251,12 @@ struct pair* create_symbol_table(FILE *file){
     
     int poffset = 4;
     for(int i = 0; i < params_len; i++){
-        mapAdd(symbol_table, params[i], poffset + i, *size);
+        mapAdd(symbol_table, params[i], poffset + i, size);
     }
     
     int loffset = 0;
     for(int i = 0; i < local_vars_len; i++){
-        mapAdd(symbol_table, local_vars[i], loffset - i, *size);
+        mapAdd(symbol_table, local_vars[i], loffset - i, size);
     }
 
     for (int i = 0; i < 100; i++) {
