@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "Map.h"
 
 char** parse_line(FILE *file, int *len) {
     rewind(file);
@@ -230,31 +231,31 @@ char** parse_function_header(FILE *file, int *len){
     return array;
 }
 
-struct pair* createSymbolTable(FILE *file){
+struct pair* createSymbolTable(FILE *file, int *size){
     if(file == NULL){
         printf("Error: file does not exist\n");
         exit(1);
     }
 
     char **params;
-    int params_len;
+    int params_len = 0;
     char **local_vars;
-    int local_vars_len;
-
-    int size = 2 * (params_len + local_vars_len);
-    struct pair *symbol_table = createMap(size);
+    int local_vars_len = 0;
 
     params = parse_function_header(file, &params_len);
     local_vars = parse_line(file, &local_vars_len);
 
+    *size = 2 * (params_len + local_vars_len);
+    struct pair *symbol_table = createMap(*size);
+
     int poffset = 4;
     for(int i = 0; i < params_len; i++){
-        mapAdd(symbol_table, params[i], poffset + i, size);
+        mapAdd(symbol_table, params[i], poffset + i, *size);
     }
     
     int loffset = 0;
     for(int i = 0; i < local_vars_len; i++){
-        mapAdd(symbol_table, local_vars[i], loffset - i, size);
+        mapAdd(symbol_table, local_vars[i], loffset - i, *size);
     }
 
     return symbol_table;
@@ -266,6 +267,10 @@ int main(int argc, char** argv){
         exit(1);
     }
     FILE *file = fopen(argv[1], "r");
-    struct pair *symbol_table = createSymbolTable(file);
-    printf("%s\n", mapToString(symbol_table));
+    int size;
+    struct pair *symbol_table = createSymbolTable(file, &size);
+    printf("%s\n", mapToString(symbol_table, size));
+
+    free(symbol_table);
+    symbol_table = NULL;
 }
