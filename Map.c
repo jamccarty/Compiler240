@@ -19,7 +19,10 @@ void mapAdd(struct pair *map, char* key, int value, const int size){
     for(int i = 0; i < len; i++){
         hash = hash + (int)(key[i]);
     }
+
     hash = hash % size;
+    map[hash].key = NULL;
+
     while(map[hash].key != NULL){
         hash++;
         count++;
@@ -61,15 +64,22 @@ int mapGetValue(struct pair* map, char* key, const int size){
 
 char *mapToString(struct pair *map, int size){
     char *ret = malloc(sizeof(char) * 50 * size);
-    char *add = malloc(sizeof(char) * 50);
+    char *add = malloc(sizeof(char) * 100);
     for(int i = 0; i < size; i++){
         if(map[i].key != NULL){
             memset(add, '\0', 50);
             sprintf(add, "%s %d\n", map[i].key, map[i].value);
-            strcat(ret, add);
+            
+            if (i == 0) {
+              strcpy(ret, add);
+            } else {
+              strcat(ret, add);
+            }
         }
     }
+
     free(add);
     add = NULL;
+
     return ret;
 }
