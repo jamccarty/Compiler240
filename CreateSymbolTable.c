@@ -9,22 +9,15 @@ char** parse_line(FILE *file, int *len) {
         printf("Error with file.\n");
         exit(1);
     }
+    
+    char **array;
     char  *whitespace = " \t\f\r\v\n";
     char *token;
-    char **array;
     char *line = NULL;
     int j = 0;
-
-    line = malloc(sizeof(char) * 100);
-    memset(line, '\0', 100);
     
-    if (line == NULL) {
-        printf("Error: malloc failed!\n");
-        exit(1);
-    }
-
     array = malloc(sizeof(char*) * 100);
-    
+
     for (int i = 0; i < 100; i++) {
         array[i] = malloc(sizeof(char) * 150);
         memset(array[i], (int)'\0', 149);
@@ -32,6 +25,14 @@ char** parse_line(FILE *file, int *len) {
 
     if (array == NULL) {
         return NULL;
+    }
+
+    line = malloc(sizeof(char) * 100);
+    memset(line, '\0', 100);
+    
+    if (line == NULL) {
+        printf("Error: malloc failed!\n");
+        exit(1);
     }
 
     line = fgets(line,  100, file); //Get rid of function header
@@ -131,7 +132,7 @@ char** parse_line(FILE *file, int *len) {
             }
         }
     }
-
+    
     free(line);
     line = NULL;
 
@@ -139,26 +140,19 @@ char** parse_line(FILE *file, int *len) {
     return array;
 }
 
-char** parse_function_header(FILE *file, int *len){
+char** parse_function_header(FILE *file, int *len) {
     rewind(file);
     if (file == NULL) {
         printf("Error with file.\n");
         exit(1);
     }
 
+    char **array;
     char *whitespace = " \t\f\r\v\n";
     char *token;
-    char **array;
     char *line = NULL;
     int j = 0;
-
-    line = malloc(sizeof(char) * 150);
-
-    if (line == NULL) {
-        printf("Error: malloc failed!\n");
-        exit(1);
-    }
-
+    
     array = malloc(sizeof(char*) * 100);
 
     for (int i = 0; i < 100; i++) {
@@ -168,6 +162,13 @@ char** parse_function_header(FILE *file, int *len){
 
     if (array == NULL) {
         return NULL;
+    }
+
+    line = malloc(sizeof(char) * 150);
+
+    if (line == NULL) {
+        printf("Error: malloc failed!\n");
+        exit(1);
     }
 
     fgets(line, 100, file);
@@ -231,23 +232,23 @@ char** parse_function_header(FILE *file, int *len){
     return array;
 }
 
-struct pair* createSymbolTable(FILE *file, int *size){
+struct pair* create_symbol_table(FILE *file){
     if(file == NULL){
         printf("Error: file does not exist\n");
         exit(1);
     }
 
     char **params;
-    int params_len = 0;
     char **local_vars;
-    int local_vars_len = 0;
+    int params_len = 0, local_vars_len = 0;
 
     params = parse_function_header(file, &params_len);
     local_vars = parse_line(file, &local_vars_len);
 
-    *size = 2 * (params_len + local_vars_len);
-    struct pair *symbol_table = createMap(*size);
-
+    //int size = 2 * (sizeof(params) + sizeof(local_vars));
+    int size = 2 * params_len + local_vars_len;
+    struct pair *symbol_table = createMap(size);
+    
     int poffset = 4;
     for(int i = 0; i < params_len; i++){
         mapAdd(symbol_table, params[i], poffset + i, *size);
@@ -258,19 +259,46 @@ struct pair* createSymbolTable(FILE *file, int *size){
         mapAdd(symbol_table, local_vars[i], loffset - i, *size);
     }
 
+    for (int i = 0; i < 100; i++) {
+      free(params[i]);
+      params[i] = NULL;
+    }
+
+    free(params);
+    params = NULL;
+
+    for (int i = 0; i < 100; i++) {
+      free(local_vars[i]);
+      local_vars[i] = NULL;
+    }
+    
+    free(local_vars);
+    local_vars = NULL;
+
     return symbol_table;
 }
 
 int main(int argc, char** argv){
-    if(argc < 2){
+    if (argc < 2){
         printf("Error: A filename must be entered.\n");
         exit(1);
+    } else if (argc > 2) {
+        printf("Error: Only one filename must be enterd.\n");
+        exit(1);
     }
+    
     FILE *file = fopen(argv[1], "r");
-    int size;
-    struct pair *symbol_table = createSymbolTable(file, &size);
-    printf("%s\n", mapToString(symbol_table, size));
+    struct pair *symbol_table = create_symbol_table(file);
+    char *string = mapToString(symbol_table, sizeof(symbol_table));
+    printf("%s\n", string);
 
     free(symbol_table);
     symbol_table = NULL;
+    
+    free(string);
+    string = NULL;
+    
+    
+    fclose(file);
+    return 0;
 }
