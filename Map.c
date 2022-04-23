@@ -10,7 +10,7 @@ struct pair* createMap(const int size){
         exit(1);
     }
     for(int i = 0; i < size; i++){
-        memset(map[i].key, '\0', 100);
+        strcpy(map[i].key, "");
     }
     return map;
 }
@@ -23,7 +23,7 @@ void mapAdd(struct pair *map, char* key, int value, const int size){
         hash = hash + (int)(key[i]);
     }
     hash = hash % size;
-    while(map[hash].key != NULL){
+    while(strcmp(map[hash].key, "") != 0){
         hash++;
         count++;
         if(count == size){
@@ -45,13 +45,13 @@ int mapGetValue(struct pair* map, char* key, const int size){
         hash = hash + (int)(key[i]);
     }
     hash = hash % size;
-    if(map[hash].key == NULL){
+    if(strcmp(map[hash].key, "") == 0){
         printf("Alert: '%s' does not exist in map. Returning 0\n", key);
         return 0;
     }
     while(strcmp(map[hash].key, key) != 0){
         hash++;
-        if(map[hash].key == NULL){
+        if(strcmp(map[hash].key, "") == 0){
             printf("Alert: '%s' does not exist in map. Returning 0\n", key);
             return 0;
         }
@@ -64,9 +64,11 @@ int mapGetValue(struct pair* map, char* key, const int size){
 
 char *mapToString(struct pair *map, int size){
     char *ret = malloc(sizeof(char) * 50 * size);
+    ret[0] = '\0';
     char *add = malloc(sizeof(char) * 50);
+    add[0] = '\0';
     for(int i = 0; i < size; i++){
-        if(map[i].key != NULL){
+        if(strcmp(map[i].key, "") != 0){
             memset(add, '\0', 50);
             sprintf(add, "%s %d\n", map[i].key, map[i].value);
             strcat(ret, add);

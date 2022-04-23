@@ -244,6 +244,19 @@ struct pair* createSymbolTable(FILE *file, int *size){
         mapAdd(symbol_table, local_vars[i], loffset - i, *size);
     }
 
+    for(int i = 0; i < params_len; i++){
+        free(params[i]);
+        params[i] = NULL;
+    }
+    free(params);
+    params = NULL;
+
+    for(int i = 0; i < local_vars_len; i++){
+        free(local_vars[i]);
+        local_vars[i] = NULL;
+    }
+    free(local_vars);
+    local_vars = NULL;
     return symbol_table;
 }
 
