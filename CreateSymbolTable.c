@@ -17,11 +17,6 @@ char** parse_line(FILE *file, int *len) {
 
     memset(line, '\0', 100);
     
-    if (line == NULL) {
-        printf("Error: malloc failed!\n");
-        exit(1);
-    }
-
     array = malloc(sizeof(char*) * 100);
     
     for (int i = 0; i < 100; i++) {
