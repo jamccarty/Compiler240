@@ -13,7 +13,7 @@ char** parse_line(FILE *file, int *len) {
     char **array;
     char  *whitespace = " \t\f\r\v\n";
     char *token;
-    char line[100];
+    char line[1000];
     int j = 0;
     
     array = malloc(sizeof(char*) * 100);
@@ -25,13 +25,6 @@ char** parse_line(FILE *file, int *len) {
 
     if (array == NULL) {
         return NULL;
-    }
-
-    memset(line, '\0', 100);
-    
-    if (line == NULL) {
-        printf("Error: malloc failed!\n");
-        exit(1);
     }
 
     fgets(line,  100, file); //Get rid of function header
@@ -131,7 +124,7 @@ char** parse_line(FILE *file, int *len) {
             }
         }
     }
-
+    
     *len = j;
     return array;
 }

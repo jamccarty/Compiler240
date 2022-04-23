@@ -2,7 +2,7 @@
 #define MAP_H_
 
 struct pair {
-    char* key;
+    char key[1024];
     int value;
 };
 
