@@ -260,10 +260,13 @@ int main(int argc, char** argv){
     FILE *file = fopen(argv[1], "r");
     int size;
     struct pair *symbol_table = createSymbolTable(file, &size);
-    printf("%s\n", mapToString(symbol_table, size));
+    char *string = mapToString(symbol_table, size);
+    printf("%s\n", string);
 
     free(symbol_table);
     symbol_table = NULL;
+    free(string);
+    string = NULL;
     fclose(file);
     return 0;
 }
