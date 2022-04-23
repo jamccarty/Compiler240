@@ -71,5 +71,7 @@ char *mapToString(struct pair *map, int size){
     }
     free(add);
     add = NULL;
+    free(ret);
+    ret = NULL;
     return ret;
 }
