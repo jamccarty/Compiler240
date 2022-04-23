@@ -3,7 +3,8 @@
 #include <string.h>
 #include "Map.h"
 
-char** parse_line(FILE *file, int *len) {
+char** parse_line(FILE *file, int *len, int* err) {
+    int errors = *err;
     rewind(file);
     if (file == NULL) {
         printf("Error with file.\n");
@@ -29,12 +30,13 @@ char** parse_line(FILE *file, int *len) {
     }
 
     fgets(line,  100, file); //Get rid of function header
+    int linenumber = 1;
 
     while (fgets(line, 100, file) != NULL) {
+        linenumber++;
         token = strtok(line, whitespace);
         if(strcmp(token, "return") == 0){
-            *len = j;
-            return array;
+            break;
         } else if (strcmp(token, "int") != 0) {
             int fits = 0;
             for(int i = 0; i < j; i++){
@@ -43,19 +45,26 @@ char** parse_line(FILE *file, int *len) {
                 }
             }
             if(fits == 0){
-                printf("Error: Symbol %s has not been declared!\n", token);
-                exit(1);
+                if(strcmp(token, "=") == 0){
+                    printf("ERROR on line %d: Missing variable name\n", linenumber);
+                }else{
+                    printf("ERROR on line %d: Symbol %s has not been declared!\n", linenumber, token);
+                }
+                errors++;
+                continue;
             }
         } else {
-            token = strtok(NULL, whitespace);
-            if(token == NULL){
-                *len = j;
-                return array;
+            token = strtok(NULL, whitespace); //variable name
+            if(token == NULL){ //if no variable name
+                printf("ERROR on line %d: Missing variable name\n", linenumber);
+                errors++;
+                continue;
             }
             if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
             (strcmp(token, ",") == 0)) {
-                printf("Error: Missing variable name!\n");
-                exit(1);
+                printf("ERROR on line %d: Missing variable name!\n", linenumber);
+                errors++;
+                continue;
             } else {
                 strcpy(array[j], token);
                 j++;
@@ -63,10 +72,17 @@ char** parse_line(FILE *file, int *len) {
 
             token = strtok(NULL, whitespace);
 
+            if(token == NULL){
+                printf("ERROR on line %d: Missing semicolon!\n", linenumber);
+                errors++;
+                continue;
+            }
+
             if ((strcmp(token, ";") != 0) && (strcmp(token, ",") != 0) &&
               (strcmp(token, "=") != 0)) {
-              printf("Error: Variable names can't contain space!\n");
-              exit(1);
+                printf("ERROR on line %d: Variable names can't contain spaces!\n", linenumber);
+                errors++;
+                continue;
             }
 
             while (1) {
@@ -74,8 +90,9 @@ char** parse_line(FILE *file, int *len) {
                     token = strtok(NULL, whitespace);
                     if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
                     (strcmp(token, ",") == 0)) {
-                        printf("Error: Missing variable name!\n");
-                        exit(1);
+                        printf("ERROR on line %d: Missing variable name!\n", linenumber);
+                        errors++;
+                        continue;
                     } else {
                         strcpy(array[j], token);
                         j++;
@@ -85,8 +102,26 @@ char** parse_line(FILE *file, int *len) {
                     
                     if ((strcmp(token, ";") != 0) && (strcmp(token, ",") != 0) &&
                       (strcmp(token, "=") != 0)) {
-                      printf("Error: Variable names can't contain space!\n");
-                      exit(1);
+
+                      printf("ERROR on line %d: Variable names can't contain space!\n", linenumber);
+                      errors++;
+                      break;
+                    }
+                }else if(strcmp(token, "+") == 0){
+                    token = strtok(NULL, whitespace);
+                    if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
+                    (strcmp(token, ",") == 0)) {
+                        printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
+                        errors++;
+                        break;
+                    }
+                    token = strtok(NULL, whitespace);
+                    
+                    if ((strcmp(token, ";") != 0) && (strcmp(token, ",") != 0) &&
+                      (strcmp(token, "=") != 0) && (strcmp(token, "+") != 0)) {
+                      printf("ERROR on line %d: Variable names can't contain space!\n", linenumber);
+                      errors++;
+                      break;
                     }
                 } else { 
                     break;
@@ -98,8 +133,9 @@ char** parse_line(FILE *file, int *len) {
 
                 if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0) ||
                   (strcmp(token, "=") == 0) || (strcmp(token, "+") == 0)) {
-                  printf("Error: Need to declare a variable or value after equal sign!\n");
-                  exit(1);
+                  printf("ERROR on line %d: Need to declare a variable or value after equal sign!\n", linenumber);
+                  errors++;
+                  continue;
                 }
                 
                 token = strtok(NULL, whitespace);
@@ -114,10 +150,12 @@ char** parse_line(FILE *file, int *len) {
                     } else if (strcmp(token, ";") == 0) {
                         break;
                     } else if ((strcmp(token, ";") != 0) && 
-                      (strcmp(token, ",") != 0) && (strcmp(token, "=") != 0)) {
+                      (strcmp(token, ",") != 0) && (strcmp(token, "=") != 0) && strcmp(token, "+") != 0) {
                       //Could just be an else statement instead of else if
-                      printf("Error: Variable names can't contain space!\n");
-                      exit(1);
+                      printf("ERROR on line %d: Need operator between values!\n", linenumber);
+                      errors++;
+                      token = strtok(NULL, whitespace);
+                      continue;
                     }
 
                     token = strtok(NULL, whitespace);
@@ -126,11 +164,13 @@ char** parse_line(FILE *file, int *len) {
         }
     }
 
+    *err = errors;
     *len = j;
     return array;
 }
 
-char** parse_function_header(FILE *file, int *len){
+char** parse_function_header(FILE *file, int *len, int *err){
+    int errors = *err;
     rewind(file);
     if (file == NULL) {
         printf("Error with file.\n");
@@ -163,20 +203,20 @@ char** parse_function_header(FILE *file, int *len){
 
     token = strtok(line, whitespace);
     if (strcmp(token, "int") != 0) {
-        printf("Error: Need to declare return type for function!\n");
-        exit(1);
+        printf("ERROR on line 1: Need to declare return type for function!\n");
+        errors++;
     }
     
     token = strtok(NULL, whitespace);
     if (strcmp(token, "(") == 0) {
-        printf("Error: Missing a function name.\n");
-        exit(1);
+        printf("ERROR on line 1: Missing a function name.\n");
+        errors++;
     }
 
     token = strtok(NULL, whitespace);
     if (strcmp(token, "(") != 0) {
-        printf("Error: Missing open parentheses for function's parameters.\n");
-        exit(1);
+        printf("ERROR on line 1: Missing open parentheses for function's parameters.\n");
+        errors++;
     }
 
     token = strtok(NULL, whitespace);
@@ -184,8 +224,9 @@ char** parse_function_header(FILE *file, int *len){
         if (strcmp(token, ")") == 0) {
             break;
         } else if (strcmp(token, "int") != 0) {
-            printf("Error: Missing parameter's variable type declaration.\n");
-            exit(1);
+            printf("ERROR on line 1: Missing parameter's variable type declaration.\n");
+            errors++;
+            continue;
         } else {
             token = strtok(NULL, whitespace);
             if ((strcmp(token, "int") != 0) && (strcmp(token, ")") != 0) &&
@@ -193,8 +234,9 @@ char** parse_function_header(FILE *file, int *len){
                 strcpy(array[j], token);
                 j++;
             } else {
-                printf("Error: Missing variable name.\n");
-                exit(1);
+                printf("ERROR on line 1: Missing variable name.\n");
+                errors++;
+                continue;
             }
         }
 
@@ -203,33 +245,42 @@ char** parse_function_header(FILE *file, int *len){
         if (strcmp(token, ")") == 0) {
             break;
         } else if ((strcmp(token, ",") != 0) && (strcmp(token, "int") != 0)) {
-          printf("Error: Variable name can't contain space!\n");
-          exit(1);
+          printf("ERROR on line 1: Variable name can't contain space!\n");
+          errors++;
+          continue;
         } else if (strcmp(token, ",") != 0) {
-            printf("Error: Invalid parameter.\n");
-            exit(1);
+            printf("ERROR on line 1: Invalid parameter.\n");
+            errors++;
+            continue;
         }
 
         token = strtok(NULL, whitespace);
     }
     
     *len = j;
+    *err = errors;
     return array;
 }
 
 struct pair* createSymbolTable(FILE *file, int *size){
     if(file == NULL){
-        printf("Error: file does not exist\n");
+        printf("ERROR: file does not exist\n");
         exit(1);
     }
 
+    int errors = 0;
     char **params;
     int params_len = 0;
     char **local_vars;
     int local_vars_len = 0;
 
-    params = parse_function_header(file, &params_len);
-    local_vars = parse_line(file, &local_vars_len);
+    params = parse_function_header(file, &params_len, &errors);
+    local_vars = parse_line(file, &local_vars_len, &errors);
+
+    if(errors > 0){
+        printf("%d errors found\n", errors);
+        exit(1);
+    }
 
     *size = 2 * (params_len + local_vars_len);
     struct pair *symbol_table = createMap(*size);
