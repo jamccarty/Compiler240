@@ -9,6 +9,7 @@ struct pair* createMap(const int size){
         printf("ERROR: map allocation failed for map size %d\n", size);
         exit(1);
     }
+
     return map;
 }
 
@@ -21,9 +22,9 @@ void mapAdd(struct pair *map, char* key, int value, const int size){
     }
 
     hash = hash % size;
-    map[hash].key = NULL;
+    strcpy(map[hash].key, "");
 
-    while(map[hash].key != NULL){
+    while(strcmp(map[hash].key, "") != 0){
         hash++;
         count++;
         if(count == size){
@@ -34,7 +35,7 @@ void mapAdd(struct pair *map, char* key, int value, const int size){
             hash = 0;
         }
     }
-    map[hash].key = key;
+    strcpy(map[hash].key, key);
     map[hash].value = value;
 }
 
@@ -63,11 +64,12 @@ int mapGetValue(struct pair* map, char* key, const int size){
 }
 
 char *mapToString(struct pair *map, int size){
-    char *ret = malloc(sizeof(char) * 50 * size);
-    char *add = malloc(sizeof(char) * 100);
+    char *ret = malloc(sizeof(char) * 1024 * size);
+    memset(ret, '\0', size * 1024);
+    char *add = malloc(sizeof(char) * 1024);
+    memset(add, '\0', 1024);
     for(int i = 0; i < size; i++){
-        if(map[i].key != NULL){
-            memset(add, '\0', 50);
+        if(strcmp(map[i].key, "") == 0){
             sprintf(add, "%s %d\n", map[i].key, map[i].value);
             
             if (i == 0) {
