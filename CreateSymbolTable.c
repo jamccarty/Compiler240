@@ -249,11 +249,6 @@ char** parse_function_header(FILE *file, char** array, int *len, int *err){
   char line[100];
   int j = 0;
 
-  if (line == NULL) {
-    printf("Error: malloc failed!\n");
-    exit(1);
-  }
-
   fgets(line, 100, file);
 
   token = strtok(line, whitespace);
