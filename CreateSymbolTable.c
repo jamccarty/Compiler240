@@ -262,7 +262,7 @@ char** parse_function_header(FILE *file, int *len, int *err){
     return array;
 }
 
-struct pair* createSymbolTable(FILE *file, int *size){
+struct pair* createSymbolTable(FILE *file, int *size, int *isErrors){
     if(file == NULL){
         printf("ERROR: file does not exist\n");
         exit(1);
@@ -279,7 +279,7 @@ struct pair* createSymbolTable(FILE *file, int *size){
 
     if(errors > 0){
         printf("%d errors found\n", errors);
-        exit(1);
+        *isErrors = 1;
     }
 
     *size = 2 * (params_len + local_vars_len);
@@ -318,7 +318,16 @@ int main(int argc, char** argv){
     }
     FILE *file = fopen(argv[1], "r");
     int size;
-    struct pair *symbol_table = createSymbolTable(file, &size);
+    int isErr = 0;
+    struct pair *symbol_table = createSymbolTable(file, &size, &isErr);
+    
+    if(isErr == 1){
+        free(symbol_table);
+        symbol_table = NULL;
+        fclose(file);
+        exit(1);
+    }
+    
     char *string = mapToString(symbol_table, size);
     printf("%s\n", string);
 
