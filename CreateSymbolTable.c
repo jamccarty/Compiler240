@@ -38,33 +38,54 @@ char** parse_line(FILE *file, int *len, int* err) {
         if(strcmp(token, "return") == 0){
             break;
         } else if (strcmp(token, "int") != 0) {
-            int fits = 0;
-            for(int i = 0; i < j; i++){
-                if(strcmp(token, array[i]) == 0){
-                    fits = 1;
-                }
-            }
-            
-            token = strtok(NULL, whitespace);
-            
-            if (strcmp(token, "=") == 0) {
-              token = strtok(NULL, whitespace);
-              if ((strcmp(token, "=") != 0) && (strcmp(token, "+") != 0) &&
-                (strcmp(token, ";") != 0) && (strcmp(token, ",") != 0))
-                token = strtok(NULL, whitespace);
-            } else {
-              printf("ERROR on line %d: Missing value after equal operator!", linenumber);
-            }
-
-            if(fits == 0){
+            char *hold_token = strtok(NULL, whitespace);
+            if(strcmp(hold_token, "=") != 0){
                 if(strcmp(token, "=") == 0){
                     printf("ERROR on line %d: Missing variable name\n", linenumber);
+                    errors++;
                 }else{
-                    printf("ERROR on line %d: Symbol %s has not been declared!\n", linenumber, token);
+                    printf("ERROR on line %d: illegal type '%s'\n", linenumber, token);
+                    errors++;
                 }
-                errors++;
+                continue;
+            }else{
+                strcpy(token, hold_token);
+            }
+            
+            //token = strtok(NULL, whitespace);
+            if(token == NULL){
+                printf("ERROR on line %d: incomplete line\n", linenumber);
                 continue;
             }
+            
+            if (strcmp(token, "=") == 0) {
+                char hold_token[100] = "";
+                while(token != NULL){
+                    token = strtok(NULL, whitespace);
+                    if(token == NULL){
+                        printf("ERROR on line %d: missing variable after operand", linenumber);
+                        errors++;
+                        break;
+                    }
+                    if(strcmp(token, ";")){
+                        break;
+                    }
+                    if(strcmp(token, "+") == 0){
+                        token = strtok(NULL, whitespace);
+                        if(token == NULL || strcmp(line, ";") == 0){
+                            printf("ERROR on line %d: missing variable after operand", linenumber);
+                            errors++;
+                            break;
+                        }
+                    }
+                    strcpy(hold_token, token);
+                }
+                if(strcmp(hold_token, ";") != 0 || strcmp(hold_token, ";")){
+                    printf("ERROR on line %d: line doesn't end in semicolon\n", linenumber);
+                    errors++;
+                }
+            }
+            continue;
         } else {
             token = strtok(NULL, whitespace); //to check for variable name
             if(token == NULL){ //if no variable name
