@@ -44,6 +44,18 @@ char** parse_line(FILE *file, int *len, int* err) {
                     fits = 1;
                 }
             }
+            
+            token = strtok(NULL, whitespace);
+            
+            if (strcmp(token, "=") == 0) {
+              token = strtok(NULL, whitespace);
+              if ((strcmp(token, "=") != 0) && (strcmp(token, "+") != 0) &&
+                (strcmp(token, ";") != 0) && (strcmp(token, ",") != 0))
+                token = strtok(NULL, whitespace);
+            } else {
+              printf("ERROR on line %d: Missing value after equal operator!", linenumber);
+            }
+
             if(fits == 0){
                 if(strcmp(token, "=") == 0){
                     printf("ERROR on line %d: Missing variable name\n", linenumber);
@@ -54,12 +66,13 @@ char** parse_line(FILE *file, int *len, int* err) {
                 continue;
             }
         } else {
-            token = strtok(NULL, whitespace); //variable name
+            token = strtok(NULL, whitespace); //to check for variable name
             if(token == NULL){ //if no variable name
                 printf("ERROR on line %d: Missing variable name\n", linenumber);
                 errors++;
                 continue;
             }
+
             if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
             (strcmp(token, ",") == 0)) {
                 printf("ERROR on line %d: Missing variable name!\n", linenumber);
@@ -107,14 +120,14 @@ char** parse_line(FILE *file, int *len, int* err) {
                       errors++;
                       break;
                     }
-                }else if(strcmp(token, "+") == 0){
+                } else if(strcmp(token, "+") == 0){
                     token = strtok(NULL, whitespace);
-                    if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
+                    /*if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
                     (strcmp(token, ",") == 0)) {
                         printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
                         errors++;
                         break;
-                    }
+                    }*/
                     token = strtok(NULL, whitespace);
                     
                     if ((strcmp(token, ";") != 0) && (strcmp(token, ",") != 0) &&
@@ -145,8 +158,12 @@ char** parse_line(FILE *file, int *len, int* err) {
                         token = strtok(NULL, whitespace);
                         strcpy(array[j], token);
                         j++;
-                    } else if (strcmp(token, "+") == 0) {
+                    } else if (strcmp(token, "+") == 0) { //////////////////////////////////////////////
                         token = strtok(NULL, whitespace);
+                    /*    if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0)) {
+                            printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
+                            errors++;
+                        }*/ 
                     } else if (strcmp(token, ";") == 0) {
                         break;
                     } else if ((strcmp(token, ";") != 0) && 
