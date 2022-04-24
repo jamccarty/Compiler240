@@ -99,6 +99,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
       token = strtok(NULL, whitespace);
       if (strcmp(token, "=") == 0) {
         token = strtok(NULL, whitespace);
+        
         if (strcmp(token, "+") == 0) {
           printf("ERROR on line %d: Need value before addition operator!\n", linenumber);
           errors++;
@@ -112,10 +113,10 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
             printf("ERROR on line %d: Doesn't end with semicolon!\n", linenumber);
             errors++;
           } else if (strcmp(token, "+") == 0) {
-            token = strtok(token, whitespace);
+            token = strtok(NULL, whitespace);
             if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0) ||
               (strcmp(token, ",") == 0) || (strcmp(token, "+") == 0) || (token == NULL)) {
-              printf("DERROR on line %d: Need value after addition operator!\n", linenumber);
+              printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
               errors++;
             } 
           }
