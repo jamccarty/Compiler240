@@ -399,6 +399,7 @@ void add(struct pair *symbol_table, const int symbol_table_size, char *current_l
     memset(store_var, '\0', 100);
     memset(add, '\0', 1024);
 
+    //TODO if(strcmp(token, "int") == 0 || strcmp(token, "return") ==0)
     if(strcmp(token, "int") == 0){ //if token == "int", skips it. token now holds variable name
         token = strtok(NULL, whitespace);
     }
