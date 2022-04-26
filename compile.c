@@ -489,22 +489,30 @@ void add(struct pair *symbol_table, const int symbol_table_size, char *current_l
 
 char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_size, int *errors){
     rewind(file);
-    char current_line[1024];
-    strcpy(current_line, "");
-    char *LC3 = malloc(sizeof(char) * (1024 * 10));
+    char current_line[200];
+    char hold_line[200];
+    memset(current_line, '\0', 200);
+    memset(hold_line, '\0', 200);
+    char *LC3 = malloc(sizeof(char) * (1024));
+    memset(LC3, '\0', 1024);
 
     fgets(current_line, 1024, file);
+    strcpy(hold_line, current_line);
     char *token = strtok(current_line, whitespace);
     int linenum = 1;
 
-    while (fgets(current_line, 100, file) != NULL) {
+    while (current_line != NULL) {
+        token = strtok(current_line, whitespace);
         while(token != NULL){
             if(strcmp(token, "+") == 0){
-                add(symbol_table, symbol_table_size, current_line, LC3, errors, linenum);
+                add(symbol_table, symbol_table_size, hold_line, LC3, errors, linenum);
             }
             token = strtok(NULL, whitespace);
         }
         linenum++;
+        fgets(current_line, 200, file);
+        strcpy(hold_line, current_line);
+
     }
     return LC3;
 }
