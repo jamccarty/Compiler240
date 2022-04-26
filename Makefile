@@ -7,3 +7,6 @@ testMap: testMap.c Map.c
 
 CreateSymbolTable: CreateSymbolTable.c Map.c
 	$(CC) -g -Wall -Wvla -Werror CreateSymbolTable.c Map.c -o $@ -lm
+
+compile: compile.c Map.c
+	$(CC) -g -Wall -Wvla -Werror compile.c Map.c -o $@ -lm
