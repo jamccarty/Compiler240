@@ -399,13 +399,13 @@ void add(struct pair *symbol_table, const int symbol_table_size, char *current_l
     memset(store_var, '\0', 100);
     memset(add, '\0', 1024);
 
-    //TODO if(strcmp(token, "int") == 0 || strcmp(token, "return") ==0)
     if(strcmp(token, "int") == 0){ //if token == "int", skips it. token now holds variable name
-        token = strtok(NULL, whitespace);
+        token = strtok(current_line, whitespace);
     }
 
     strcpy(store_var, token); //store_var now holds variable sum will be stored at
 
+    //THIS IS NOT WORKING RIGHT??????????????????????????????????????????????????
     if(mapGetValue(symbol_table, token, symbol_table_size) == 1){ //if token does not exist in symbol_table, print error
         printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
         errors++;
@@ -441,13 +441,8 @@ void add(struct pair *symbol_table, const int symbol_table_size, char *current_l
             strcat(LC3, add);
         }
 
-   // token = strtok(NULL, whitespace);
-
     while(token != NULL){
         token = strtok(NULL, whitespace); //token should now hold "+"
-        if(strcmp(token, ";") == 0){
-            break;
-        }
 
         if(strcmp(token, "+") != 0){
             printf("ERROR on line %d: illegal operand '%s'\n", linenum, token);
@@ -456,7 +451,7 @@ void add(struct pair *symbol_table, const int symbol_table_size, char *current_l
 
         token = strtok(NULL, whitespace); //get next variable
 
-        if(token[0] >= '0' && token[0] <= '9'){ //if token is a literal number, load into current register
+        if(token[0] <= '0' && token[0] >= '9'){ //if token is a literal number, load into current register
         //NOTE: LC3 registers hold 5-bit two's compliment
 
             int num = atoi(token);
