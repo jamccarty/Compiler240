@@ -453,7 +453,7 @@ void add(struct pair *symbol_table, const int symbol_table_size, char *current_l
 
         token = strtok(NULL, whitespace); //get next variable
 
-        if(token[0] <= '0' && token[0] >= '9'){ //if token is a literal number, load into current register
+        if(token[0] >= '0' && token[0] <= '9'){ //if token is a literal number, load into current register
         //NOTE: LC3 registers hold 5-bit two's compliment
 
             int num = atoi(token);
