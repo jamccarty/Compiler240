@@ -46,13 +46,11 @@ int mapGetValue(struct pair* map, char* key, const int size){
     }
     hash = hash % size;
     if(strcmp(map[hash].key, "") == 0){
-        printf("Alert: '%s' does not exist in map. Returning 0\n", key);
-        return 0;
+        return 1;
     }
     while(strcmp(map[hash].key, key) != 0){
         hash++;
         if(strcmp(map[hash].key, "") == 0){
-            printf("Alert: '%s' does not exist in map. Returning 1\n", key);
             return 1;
         }
         if(hash == size){

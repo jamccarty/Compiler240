@@ -443,6 +443,9 @@ void add(struct pair *symbol_table, const int symbol_table_size, char *current_l
     while(token != NULL){
         token = strtok(NULL, whitespace); //token should now hold "+"
 
+        if(strcmp(token, ";") == 0){
+            break;
+        }
         if(strcmp(token, "+") != 0){
             printf("ERROR on line %d: illegal operand '%s'\n", linenum, token);
             errors++;
