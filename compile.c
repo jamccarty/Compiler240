@@ -400,7 +400,7 @@ void add(struct pair *symbol_table, const int symbol_table_size, char *current_l
     memset(add, '\0', 1024);
 
     if(strcmp(token, "int") == 0){ //if token == "int", skips it. token now holds variable name
-        token = strtok(current_line, whitespace);
+        token = strtok(NULL, whitespace);
     }
 
     strcpy(store_var, token); //store_var now holds variable sum will be stored at
