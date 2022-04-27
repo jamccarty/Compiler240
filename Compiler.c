@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include "Map.h"
 
-char  *whitespace = " \t\f\r\v\n";
+char *whitespace = " \t\f\r\v\n";
 
 char** parse_line(FILE *file, char** array, int *len, int* err) {
   int errors = *err;
@@ -88,9 +89,6 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
               }
             }
           }
-/* else {
-            printf("ERROR on line %d: Symbol %s has not been declared!\n", linenumber, hold_token);
-          }*/
         }
         errors++;
         token = hold_token;
@@ -390,107 +388,108 @@ struct pair* createSymbolTable(FILE *file, int *size, int *isErrors){
 //          LC3 = string containing entirety of LC-3 assembly code, to be printed to file after compilation is completed
 //          errors = number of errors found during compilation process. if errors > 0 by end, LC3 file will not be created
 //          linenum = current linenumber in source code file
-void add(struct pair *symbol_table, const int symbol_table_size, char *current_line, char *LC3, int *err, int linenum){
-    int errors = *err;
-    //for example code: assume current_line is "x = y + 3 ;"
-    char *token = strtok(current_line, whitespace); //token now holds either "int" or variable name
-    char store_var[100];
-    char add[1024];
-    memset(store_var, '\0', 100);
-    memset(add, '\0', 1024);
+void assign(struct pair *symbol_table, const int symbol_table_size, char *current_line, char *LC3, int *err, int linenum){
+  int errors = *err;
+  //for example code: assume current_line is "x = y + 3 ;"
+  char *token = strtok(current_line, whitespace); //token now holds either "int" or variable name
+  char store_var[100];
+  char add[1024];
+  memset(store_var, '\0', 100);
+  memset(add, '\0', 1024);
+  int changeReg = 0, changeReg2 = 0, change = 0;
+  int chr = 0, isChanged = 0;
 
-    //TODO if(strcmp(token, "int") == 0 || strcmp(token, "return") ==0)
-    if(strcmp(token, "int") == 0){ //if token == "int", skips it. token now holds variable name
-        token = strtok(NULL, whitespace);
-    }
+  //TODO if(strcmp(token, "int") == 0 || strcmp(token, "return") ==0)
+  if (strcmp(token, "int") == 0) { //if token == "int", skips it. token now holds variable name
+    token = strtok(NULL, whitespace);
+  }
 
-    strcpy(store_var, token); //store_var now holds variable sum will be stored at
+  strcpy(store_var, token); //store_var now holds variable sum will be stored at
 
-    if(mapGetValue(symbol_table, token, symbol_table_size) == 1){ //if token does not exist in symbol_table, print error
-        printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
-        errors++;
-    }
-
+  if (mapGetValue(symbol_table, token, symbol_table_size) == 1) { //if token does not exist in symbol_table, print error
+      printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
+      errors++;
+    //}
+  } else {
     token = strtok(NULL, whitespace); //token now holds "="
     token = strtok(NULL, whitespace); //token now holds either variable or number
 
-    if(token[0] >= '0' && token[0] <= '9'){ //if token is a literal number, load into current register
+    while (token != NULL) { 
+      //tried isdigit() instead of strcmp'ing for every value between 0-15, but it kept giving errors with isdigit() so changed to the more tedious way (;-;)
+      if ((strcmp(token, "0") == 0) || (strcmp(token, "1") == 0) || (strcmp(token, "2") == 0) ||
+        (strcmp(token, "3") == 0) || (strcmp(token, "4") == 0) || (strcmp(token, "5") == 0) ||
+        (strcmp(token, "6") == 0) || (strcmp(token, "7") == 0) || (strcmp(token, "8") == 0) ||
+        (strcmp(token, "9") == 0) || (strcmp(token, "10") == 0) || (strcmp(token, "11") == 0) ||
+        (strcmp(token, "12") == 0) || (strcmp(token, "13") == 0) || 
+        (strcmp(token, "14") == 0) || (strcmp(token, "15") == 0)) {
+        //if token is a literal number, load into current register
         //NOTE: LC3 registers hold 5-bit two's compliment
-
-            int num = atoi(token);
-            while(num >= 15){
-                sprintf(add, "ADD R0, R0, #15\n");
-                strcat(LC3, add);
-                num = num - 15;
-            }
-
-            while(num <= -16){
-                sprintf(add, "ADD R0, R0, #-16\n");
-                strcat(LC3, add);
-                num = num + 16;
-            }
-
-            sprintf(add, "ADD R0, R0, #%d\n", num);
-            strcat(LC3, add);
-
-        }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){ //if token does not exist in symbol_table, print error
-            printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
-            errors++;
-        }else{
-            sprintf(add, "LDR R0, R5, %s\n", token); //(from example): add onto LC3 code - load y into R0
-            strcat(LC3, add);
+        
+        int num = atoi(token);
+        token = strtok(NULL, whitespace);
+        if (strcmp(token, "+") == 0) {
+          changeReg2 = 1;
         }
-
-   // token = strtok(NULL, whitespace);
-
-    while(token != NULL){
-        token = strtok(NULL, whitespace); //token should now hold "+"
-        if(strcmp(token, ";") == 0){
-            break;
+        
+        if ((changeReg == 1) && (changeReg2 == 1)) {
+          change = 1;
         }
-
-        if(strcmp(token, "+") != 0){
-            printf("ERROR on line %d: illegal operand '%s'\n", linenum, token);
-            errors++;
-        }
-
-        token = strtok(NULL, whitespace); //get next variable
-
-        if(token[0] >= '0' && token[0] <= '9'){ //if token is a literal number, load into current register
-        //NOTE: LC3 registers hold 5-bit two's compliment
-
-            int num = atoi(token);
-            while(num >= 15){
-                sprintf(add, "ADD R1, R1, #15\n");
-                strcat(LC3, add);
-                num = num - 15;
-            }
-
-            while(num <= -16){
-                sprintf(add, "ADD R1, R1, #-16\n");
-                strcat(LC3, add);
-                num = num + 16;
-            }
-
-            sprintf(add, "ADD R1, R1, #%d\n", num);
-            strcat(LC3, add);
-
-        }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){ //if token does not exist in symbol_table, print error
-            printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
-            errors++;
-        }else{
-            sprintf(add, "LDR R0, R5, %s\n", token); //(from example): add onto LC3 code - load y into R0
-            strcat(LC3, add);
-        }
-
-        sprintf(add, "ADD R0, R0, R1\n"); //add contents of R0 and R1, store in R0
+        sprintf(add, "AND R%d, R%d, #0\n", change, change);
         strcat(LC3, add);
-    }
+        //changeReg = 1;
+        
+        sprintf(add, "ADD R%d, R%d, #%d\n", change, change, num);
+        strcat(LC3, add);
+      } else {
+        if (mapGetValue(symbol_table, token, symbol_table_size) == 1){
+        //if token does not exist in symbol_table, print error
+          printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
+          errors++;
+        } else {
+          //First find where the varible is in the symbol table then add the symbol's key (which is the offset)!!!!!!!
+          char* token2 = token;
+          token = strtok(NULL, whitespace);
 
-    sprintf(add, "STR, R0, R5, %s\n", store_var);
-    strcat(LC3, add);
-    *err = errors;
-    return;
+          //The thing below for %s should be taking in the offset NOT the token!!
+          sprintf(add, "LDR R%d, FP, %s\n", chr, token2); //(from example): add onto LC3 code - load y into R0
+          strcat(LC3, add);
+          if (strcmp(token, "+") == 0) {
+            chr = 1;
+            change = 1;
+            //printf("LOL\n");
+          }
+          isChanged = 1;
+        }
+      }
+      
+      if ((strcmp(token, "+") == 0) || (strcmp(token, ",") == 0)) {
+        printf("NORRRRRRRRRRRRR\n");
+        if (strcmp(token, "+") == 0) {
+          changeReg = 0;
+        }
+        token = strtok(NULL, whitespace);
+        printf("%s\n", token);
+      } else if ((strcmp(token, "+") != 0) && (strcmp(token, ";") != 0) && (strcmp(token, ",") != 0)) {
+        printf("ERROR on line %d: Invalid code format involving \"%s\"\n", linenum, token);
+        errors++;
+        break;
+      }
+  
+      if (strcmp(token, ";") == 0) {
+        if (isChanged == 1) {
+          sprintf(add, "ADD R0, R0, R1\n");
+          strcat(LC3, add);
+        }
+        //STORE_VAR SHOULD BE THE TOKEN NOT HT EACTUAL VARIABLEEEE!!!
+        sprintf(add, "STR R0, FP, %s\n", store_var);
+        strcat(LC3, add);
+        token = strtok(NULL, whitespace);
+      }
+    }
+  }
+  
+  *err = errors;
+  return;
 }
 
 char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_size, int *errors){
@@ -503,40 +502,53 @@ char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_si
     memset(LC3, '\0', 1024);
 
     fgets(current_line, 1024, file);
+    fgets(current_line, 1024, file); //fgets twice to skip first function header line
     strcpy(hold_line, current_line);
-    char *token = strtok(current_line, whitespace);
+    char *token;// = strtok(current_line, whitespace);
     int linenum = 1;
 
     while (current_line != NULL) {
-        token = strtok(current_line, whitespace);
-        while(token != NULL){
-            if(strcmp(token, "+") == 0){
-                add(symbol_table, symbol_table_size, hold_line, LC3, errors, linenum);
-            }
-            token = strtok(NULL, whitespace);
-        }
-        linenum++;
-        fgets(current_line, 200, file);
-        strcpy(hold_line, current_line);
-
+      token = strtok(current_line, whitespace);
+      if(strcmp(token, "return") == 0) {
+        break;
+      } else if (strcmp(token, "}") != 0) {
+        assign(symbol_table, symbol_table_size, hold_line, LC3, errors, linenum);
+      } else {
+        break;
+      }
+     
+      linenum++;
+      fgets(current_line, 200, file);
+      strcpy(hold_line, current_line);
     }
+
     return LC3;
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   if(argc < 2){
     printf("Error: A filename must be entered.\n");
+    exit(1);
+  } else if (argc > 2) {
+    printf("Error: Only one filename must be entered.\n");
     exit(1);
   }
     
   FILE *file = fopen(argv[1], "r");
-  char *LC3;
   int size;
   int isErr = 0;
+  char *LC3 = NULL;
+  LC3 = malloc(sizeof(char) * 4000);
+
+  if (LC3 == NULL) {
+    printf("Error: malloc has failed.\n");
+    exit(1);
+  }
+
   struct pair *symbol_table = createSymbolTable(file, &size, &isErr);
   LC3 = read_operations(file, symbol_table, size, &isErr);
     
-  if (isErr == 1){
+  if (isErr == 1) {
     free(symbol_table);
     symbol_table = NULL;
     fclose(file);
@@ -546,13 +558,15 @@ int main(int argc, char** argv){
   char *string = mapToString(symbol_table, size);
   printf("%s\n%s\n", LC3, string);
 
+  free(LC3);
+  LC3 = NULL;
   free(symbol_table);
   symbol_table = NULL;
   free(string);
   string = NULL;
+  //free(LC3);
+  //LC3 = NULL;
   fclose(file);
-  free(LC3);
-  LC3 = NULL;
   
   return 0;
 }
