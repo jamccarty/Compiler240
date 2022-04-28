@@ -425,7 +425,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
       sprintf(add, "ADD R0, R0, #%s\n", token);
       strcat(LC3, add);
     }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){
-      printf("ERROR on line %d: symbol '%s' has not been declared\n", linenum, token);
+      printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
       errors++;
     }else{
       sprintf(add, "LDR R0, FP, #%d\n", mapGetValue(symbol_table, token, symbol_table_size));
@@ -479,7 +479,15 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
     //}
   } else {
     token = strtok(NULL, whitespace); //token now holds "="
-    token = strtok(NULL, whitespace); //token now holds either variable or number
+
+    if(token == NULL){
+      *err = errors;
+      return;
+    }
+    
+    if(strcmp(token, "=") == 0){
+      token = strtok(NULL, whitespace); //token now holds either variable or number
+    }
 
     while (token != NULL) { 
       //tried isdigit() instead of strcmp'ing for every value between 0-15, but it kept giving errors with isdigit() so changed to the more tedious way (;-;)
@@ -494,6 +502,11 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
         
         int num = atoi(token);
         token = strtok(NULL, whitespace);
+
+        if(token == NULL){
+          break;
+        }
+
         if (strcmp(token, "+") == 0) {
           changeReg2 = 1;
         }
@@ -625,9 +638,11 @@ int main(int argc, char** argv) {
   struct pair *symbol_table = createSymbolTable(file, &size, &isErr);
   LC3 = read_operations(file, symbol_table, size, &isErr);
     
-  if (isErr == 1) {
+  if (isErr > 0) {
     free(symbol_table);
     symbol_table = NULL;
+    free(LC3);
+    LC3 = NULL;
     fclose(file);
     exit(1);
   }
