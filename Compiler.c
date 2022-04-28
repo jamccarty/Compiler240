@@ -467,6 +467,13 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
 
     token = strtok(NULL, whitespace); //should hold "+"
     if(token == NULL) return;
+
+    if(strcmp(token, ";") == 0){
+      strcat(LC3, "STR R0, FP, #3\nRET\n");
+      *err = errors;
+      return;
+    }
+    
     token = strtok(NULL, whitespace); //should hold next variable
 
     if(token == NULL) return;
