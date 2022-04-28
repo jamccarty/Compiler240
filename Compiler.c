@@ -145,7 +145,6 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
           }
         }
         if(alreadyExists == 0){
-          */
           strcpy(array[j], token);
           j++;
         }
@@ -481,7 +480,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
     if(token == NULL) return;
 
     if(strcmp(token, ";") == 0){
-      strcat(LC3, "STR R0, FP, #3\nRET\n");
+      strcat(LC3, "STR R0, FP, #3; write RV\nRET\n");
       *err = errors;
       return;
     }
@@ -678,7 +677,7 @@ char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_si
 }
 
 int main(int argc, char** argv) {
-  if(argc < 2){
+  if (argc < 2) {
     printf("Error: A filename must be entered.\n");
     exit(1);
   } else if (argc > 2) {
