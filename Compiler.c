@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-//#include <ctype.h>
 #include "Map.h"
 
 char *whitespace = " \t\f\r\v\n";
@@ -23,7 +22,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
     
   fgets(line,  100, file); //Gets rid of function header
   int linenumber = 1;
-
+  
   while (fgets(line, 100, file) != NULL) {
     linenumber++;
     token = strtok(line, whitespace);
@@ -62,6 +61,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
       if(fits == 0){
         if(strcmp(token, "=") == 0){
           printf("ERROR on line %d: Missing variable name!\n", linenumber);
+          errors++;
         } else {
           hold_token = token;
           token = strtok(NULL, whitespace);
@@ -71,6 +71,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
             (strcmp(hold_token, ";") != 0) && (strcmp(hold_token, "=") != 0) &&
             (strcmp(hold_token, ",") != 0) && (strcmp(hold_token, "+") != 0)) {
             printf("ERROR on line %d: Illegal type \"%s\"\n", linenumber, hold_token);
+            errors++;
           } else if (strcmp(token, "=") == 0) {
             token = strtok(NULL, whitespace);
             while (1) {
@@ -90,7 +91,6 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
             }
           }
         }
-        errors++;
         token = hold_token;
         continue;
       }
@@ -206,18 +206,15 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
         }
 
         token = strtok(NULL, whitespace);
-                
         while (1) {
           if (strcmp(token, ",") == 0) {
-            token = strtok(NULL, whitespace);
-            strcpy(array[j], token);
-            j++;
+            break;
           } else if (strcmp(token, "+") == 0) {
             token = strtok(NULL, whitespace);
-          } else if (strcmp(token, ";") == 0) {
+          } else if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0)) {
            break;
           } else if ((strcmp(token, ";") != 0) && (strcmp(token, ",") != 0)
-            && (strcmp(token, "=") != 0) && strcmp(token, "+") != 0) {
+            && (strcmp(token, "=") != 0) && (strcmp(token, "+") != 0)) {
             printf("ERROR on line %d: Need operator between values!\n", linenumber);
             errors++;
             token = strtok(NULL, whitespace);
@@ -225,6 +222,42 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
           }
 
           token = strtok(NULL, whitespace);
+        }
+
+        while (strcmp(token, ";") != 0) {
+          if (strcmp(token, ",") == 0) {
+            token = strtok(NULL, whitespace);
+            if ((strcmp(token, ";") != 0) && (strcmp(token, ",") != 0)
+              && (strcmp(token, "=") != 0) && (strcmp(token, "+") != 0)) {
+              strcpy(array[j], token);
+              j++;
+            } else {
+              printf("ERROR on line %d: Missing variable name!\n", linenumber);
+              errors++;
+            }
+            
+            token = strtok(NULL, whitespace);
+            if (strcmp(token, "=") == 0) {
+              token = strtok(NULL, whitespace);
+              if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0)
+                || (strcmp(token, "=") == 0) || (strcmp(token, "+") == 0)) {
+                printf("ERROR on line %d: Missing variable name!\n", linenumber);
+                errors++;
+              }
+              token = strtok(NULL, whitespace);
+              while (strcmp(token, "+") == 0) {
+                token = strtok(NULL, whitespace);
+                if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0)
+                  || (strcmp(token, "=") == 0) || (strcmp(token, "+") == 0)) {
+                  printf("ERROR on line %d: Missing variable name!\n", linenumber);
+                  errors++;
+                }
+                token = strtok(NULL, whitespace);
+              }
+            }
+          } else {
+            break;
+          }
         }
       }
     }
@@ -397,7 +430,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
   memset(store_var, '\0', 100);
   memset(add, '\0', 1024);
   int changeReg = 0, changeReg2 = 0, change = 0;
-  int chr = 0, isChanged = 0;
+  int chr = 0, twoVar = 0;
 
   //TODO if(strcmp(token, "int") == 0 || strcmp(token, "return") ==0)
   if (strcmp(token, "int") == 0) { //if token == "int", skips it. token now holds variable name
@@ -407,7 +440,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
 
     if(token == NULL) return; //syntax error
     if(strcmp(token, ";") == 0){
-      strcat(LC3, "RET\n");
+      strcat(LC3, "RET\n"); //Do we have to ret...?
       *err = errors;
       return;
     }
@@ -422,13 +455,13 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
     }
 
     if(isLiteral0 == 1){
-      sprintf(add, "ADD R0, R0, #%s\n", token);
+      sprintf(add, "ADD R0, R0, #%s; add %s to R0\n", token, token);
       strcat(LC3, add);
     }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){
       printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
       errors++;
     }else{
-      sprintf(add, "LDR R0, FP, #%d\n", mapGetValue(symbol_table, token, symbol_table_size));
+      sprintf(add, "LDR R0, FP, #%d; read %s\n", mapGetValue(symbol_table, token, symbol_table_size), token);
       strcat(LC3, add);
     }
 
@@ -449,13 +482,13 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
       }
 
       if(isLiteral1 == 1){          
-        sprintf(add, "ADD R0, R0, #%s\n", token);
+        sprintf(add, "ADD R0, R0, #%s; add %s to R0\n", token, token);
         strcat(LC3, add);
       }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){
         printf("ERROR on line %d: symbol '%s' not declared\n", linenum, token);
         errors++;
-      }else{
-        sprintf(add, "LDR R1, FP, #%d\nADD R0, R0, R1\n", mapGetValue(symbol_table, token, symbol_table_size));
+      } else {
+        sprintf(add, "LDR R1, FP, #%d; read %s\nADD R0, R0, R1; put sum in R0\n", mapGetValue(symbol_table, token, symbol_table_size), token);
         strcat(LC3, add);
       }
 
@@ -467,103 +500,109 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
 
       token = strtok(NULL, whitespace); //token holds next variable
     }
-    strcat(LC3, "R0, R5, #3\nRET\n");
+    
+    strcat(LC3, "STR R0, FP, #3; write RV\nRET\n");
     return;
   }
 
-  strcpy(store_var, token); //store_var now holds variable sum will be stored at
-
-  if (mapGetValue(symbol_table, token, symbol_table_size) == 1) { //if token does not exist in symbol_table, print error
+  while (token != NULL) { //while loop to handle commasa 
+    strcpy(store_var, token); //store_var now holds variable sum will be stored
+    if (mapGetValue(symbol_table, token, symbol_table_size) == 1) { //if token does not exist in symbol_table, print error
       printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
       errors++;
-    //}
-  } else {
-    token = strtok(NULL, whitespace); //token now holds "="
+    } else {
+      token = strtok(NULL, whitespace); //token now holds "="
 
-    if(token == NULL){
-      *err = errors;
-      return;
-    }
+      if(token == NULL){
+        *err = errors;
+        return;
+      }
     
-    if(strcmp(token, "=") == 0){
-      token = strtok(NULL, whitespace); //token now holds either variable or number
-    }
+      if(strcmp(token, "=") == 0){
+        token = strtok(NULL, whitespace); //token now holds either variable or number
+      }
 
-    while (token != NULL) { 
-      //tried isdigit() instead of strcmp'ing for every value between 0-15, but it kept giving errors with isdigit() so changed to the more tedious way (;-;)
-      if ((strcmp(token, "0") == 0) || (strcmp(token, "1") == 0) || (strcmp(token, "2") == 0) ||
-        (strcmp(token, "3") == 0) || (strcmp(token, "4") == 0) || (strcmp(token, "5") == 0) ||
-        (strcmp(token, "6") == 0) || (strcmp(token, "7") == 0) || (strcmp(token, "8") == 0) ||
-        (strcmp(token, "9") == 0) || (strcmp(token, "10") == 0) || (strcmp(token, "11") == 0) ||
-        (strcmp(token, "12") == 0) || (strcmp(token, "13") == 0) || 
-        (strcmp(token, "14") == 0) || (strcmp(token, "15") == 0)) {
-        //if token is a literal number, load into current register
-        //NOTE: LC3 registers hold 5-bit two's compliment
+      while (token != NULL) {
+        if ((strcmp(token, "0") == 0) || (strcmp(token, "1") == 0) || (strcmp(token, "2") == 0) ||
+          (strcmp(token, "3") == 0) || (strcmp(token, "4") == 0) || (strcmp(token, "5") == 0) ||
+          (strcmp(token, "6") == 0) || (strcmp(token, "7") == 0) || (strcmp(token, "8") == 0) ||
+          (strcmp(token, "9") == 0) || (strcmp(token, "10") == 0) || (strcmp(token, "11") == 0) ||
+          (strcmp(token, "12") == 0) || (strcmp(token, "13") == 0) || 
+          (strcmp(token, "14") == 0) || (strcmp(token, "15") == 0)) {
+          //if token is a literal number, load into current register
+          //NOTE: LC3 registers hold 5-bit two's compliment
         
-        int num = atoi(token);
-        token = strtok(NULL, whitespace);
+          int num = atoi(token);
+          token = strtok(NULL, whitespace);
 
-        if(token == NULL){
+          if(token == NULL){
+            break;
+          }
+
+          if (strcmp(token, "+") == 0) {
+            changeReg2 = 1;
+          }
+        
+          if ((changeReg == 1) && (changeReg2 == 1)) {
+            change = 1;
+          }
+          sprintf(add, "AND R%d, R%d, #0; clear R%d\n", change, change, change);
+          strcat(LC3, add);
+        
+          sprintf(add, "ADD R%d, R%d, #%d; add %d to R%d\n", change, change, num, num, change);
+          strcat(LC3, add);
+          twoVar++;
+        } else {
+          if (mapGetValue(symbol_table, token, symbol_table_size) == 1){
+          //if token does not exist in symbol_table, print error
+            printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
+            errors++;
+          } else {
+            twoVar++;
+
+            sprintf(add, "LDR R%d, FP, #%d; read %s\n", chr, mapGetValue(symbol_table, token, symbol_table_size), token); //(from example): add onto LC3 code - load y into R0
+            strcat(LC3, add);
+
+            token = strtok(NULL, whitespace);
+            if (strcmp(token, "+") == 0) {
+              chr = 1;
+              change = 1;
+            }
+          }
+        }
+      
+        //if ((strcmp(token, "+") == 0) ||
+        if (strcmp(token, ",") == 0) {
+          if (twoVar >= 2) {
+            sprintf(add, "ADD R0, R0, R1; put sum in R0\n");
+            strcat(LC3, add);
+          }
+          sprintf(add, "STR R0, FP, #%d; write %s\n", mapGetValue(symbol_table, store_var, symbol_table_size), store_var);
+          strcat(LC3, add);
+          token = strtok(NULL, whitespace);
+          twoVar = 0;
+          break;
+        } else if (strcmp(token, "+") == 0) {
+          changeReg = 0;
+          token = strtok(NULL, whitespace);
+        } else if ((strcmp(token, "+") != 0) && (strcmp(token, ";") != 0) && (strcmp(token, ",") != 0)) {
+          printf("ERROR on line %d: Invalid code format involving \"%s\"\n", linenum, token);
+          errors++;
           break;
         }
 
-        if (strcmp(token, "+") == 0) {
-          changeReg2 = 1;
+        if (twoVar == 2) {
+          sprintf(add, "ADD R0, R0, R1; put sum in R0\n");
+          strcat(LC3, add);
+          twoVar--;
         }
-        
-        if ((changeReg == 1) && (changeReg2 == 1)) {
-          change = 1;
-        }
-        sprintf(add, "AND R%d, R%d, #0\n", change, change);
-        strcat(LC3, add);
-        //changeReg = 1;
-        
-        sprintf(add, "ADD R%d, R%d, #%d\n", change, change, num);
-        strcat(LC3, add);
-      } else {
-        if (mapGetValue(symbol_table, token, symbol_table_size) == 1){
-        //if token does not exist in symbol_table, print error
-          printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
-          errors++;
-        } else {
-          //First find where the varible is in the symbol table then add the symbol's key (which is the offset)!!!!!!!
-          char* token2 = token;
+   
+        if (strcmp(token, ";") == 0){
+          sprintf(add, "STR R0, FP, #%d; write %s\n", mapGetValue(symbol_table, store_var, symbol_table_size), store_var);
+          strcat(LC3, add);
           token = strtok(NULL, whitespace);
-
-          //The thing below for %s should be taking in the offset NOT the token!!
-          sprintf(add, "LDR R%d, FP, #%d\n", chr, mapGetValue(symbol_table, token2, symbol_table_size)); //(from example): add onto LC3 code - load y into R0
-          strcat(LC3, add);
-          if (strcmp(token, "+") == 0) {
-            chr = 1;
-            change = 1;
-            //printf("LOL\n");
-          }
-          isChanged = 1;
+          twoVar = 0;
         }
-      }
-      
-      if ((strcmp(token, "+") == 0) || (strcmp(token, ",") == 0)) {
-        printf("NORRRRRRRRRRRRR\n");
-        if (strcmp(token, "+") == 0) {
-          changeReg = 0;
-        }
-        token = strtok(NULL, whitespace);
-        printf("%s\n", token);
-      } else if ((strcmp(token, "+") != 0) && (strcmp(token, ";") != 0) && (strcmp(token, ",") != 0)) {
-        printf("ERROR on line %d: Invalid code format involving \"%s\"\n", linenum, token);
-        errors++;
-        break;
-      }
-  
-      if (strcmp(token, ";") == 0) {
-        if (isChanged == 1) {
-          sprintf(add, "ADD R0, R0, R1\n");
-          strcat(LC3, add);
-        }
-        //STORE_VAR SHOULD BE THE TOKEN NOT HT EACTUAL VARIABLEEEE!!!
-        sprintf(add, "STR R0, FP, #%d\n", mapGetValue(symbol_table, store_var, symbol_table_size));
-        strcat(LC3, add);
-        token = strtok(NULL, whitespace);
       }
     }
   }
@@ -573,46 +612,50 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
 }
 
 char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_size, int *errors){
-    rewind(file);
-    char current_line[200];
-    char hold_line[200];
+  rewind(file);
+  char current_line[200];
+  char hold_line[200];
     
-    memset(current_line, '\0', 200);
-    memset(hold_line, '\0', 200);
-    char *LC3 = malloc(sizeof(char) * (1024));
+  memset(current_line, '\0', 200);
+  memset(hold_line, '\0', 200);
+  char *LC3 = malloc(sizeof(char) * (1024));
 
-    if (LC3 == NULL) {
-      printf("Error: malloc has failed.\n");
-      exit(1);
+  if (LC3 == NULL) {
+    printf("Error: malloc has failed.\n");
+    exit(1);
+  }
+
+  memset(LC3, '\0', 1024);
+
+  fgets(current_line, 200, file);
+  fgets(current_line, 200, file); //fgets twice to skip first function header line
+  strcpy(hold_line, current_line);
+  char *token;// = strtok(current_line, whitespace);
+  int linenum = 2;
+
+  while (current_line != NULL) {
+    char semicol[204];
+
+    if (linenum == 2) {
+      sprintf(semicol, ";%s", current_line); 
+    } else {
+      sprintf(semicol, "\n;%s", current_line);
     }
-
-    memset(LC3, '\0', 1024);
-
-    fgets(current_line, 200, file);
-    fgets(current_line, 200, file); //fgets twice to skip first function header line
-    strcpy(hold_line, current_line);
-    char *token;// = strtok(current_line, whitespace);
-    int linenum = 2;
-    
-  
-    while (current_line != NULL) {
-      char semicol[204];
-      sprintf(semicol, "\n;%s\n", current_line); 
-
-      token = strtok(current_line, whitespace);
-      if (strcmp(token, "}") != 0) {
-        strcat(LC3, semicol);
-        assign(symbol_table, symbol_table_size, hold_line, LC3, errors, linenum);
-      } else {
-        break;
-      }
+      
+    token = strtok(current_line, whitespace);
+    if (strcmp(token, "}") != 0) {
+      strcat(LC3, semicol);
+      assign(symbol_table, symbol_table_size, hold_line, LC3, errors, linenum);
+    } else {
+      break;
+    }
      
-      linenum++;
-      fgets(current_line, 200, file);
-      strcpy(hold_line, current_line);
-    }
+    linenum++;
+    fgets(current_line, 200, file);
+    strcpy(hold_line, current_line);
+  }
 
-    return LC3;
+  return LC3;
 }
 
 int main(int argc, char** argv) {
@@ -636,21 +679,20 @@ int main(int argc, char** argv) {
   char *LC3;
 
   struct pair *symbol_table = createSymbolTable(file, &size, &isErr);
-  LC3 = read_operations(file, symbol_table, size, &isErr);
-    
+  
   if (isErr > 0) {
     free(symbol_table);
     symbol_table = NULL;
-    free(LC3);
-    LC3 = NULL;
     fclose(file);
     exit(1);
   }
 
-  char *string = mapToString(symbol_table, size);
-  printf("%s\n%s\n", LC3, string);
+  LC3 = read_operations(file, symbol_table, size, &isErr);  
 
-  fp = fopen("LC3.asm", "w"); //GRACE was "w+" a typo or was it intentional?
+  char *string = mapToString(symbol_table, size);
+  printf("%s\nSymbol Table:\n=============\n%s", LC3, string);
+
+  fp = fopen("LC3.asm", "w"); //GRACE was "w+" a typo or was it intentional? Yes, UwU
   if (fp == NULL) {
     printf("Error: malloc has failed.\n");
     exit(1);
