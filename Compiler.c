@@ -402,6 +402,73 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
   //TODO if(strcmp(token, "int") == 0 || strcmp(token, "return") ==0)
   if (strcmp(token, "int") == 0) { //if token == "int", skips it. token now holds variable name
     token = strtok(NULL, whitespace);
+  }else if(strcmp(token, "return") == 0){
+    token = strtok(NULL, whitespace); //token should now hold variable or literal
+
+    if(token == NULL) return; //syntax error
+    if(strcmp(token, ";") == 0){
+      strcat(LC3, "RET\n");
+      *err = errors;
+      return;
+    }
+
+    int isLiteral0 = 1; 
+    int tok_len = strlen(token);
+    
+    for(int i = 0; i < tok_len; i++){
+      if(token[i] < '0' || token[i] > '9'){
+        isLiteral0 = 0;
+      }
+    }
+
+    if(isLiteral0 == 1){
+      sprintf(add, "ADD R0, R0, #%s\n", token);
+      strcat(LC3, add);
+    }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){
+      printf("ERROR on line %d: symbol '%s' has not been declared\n", linenum, token);
+      errors++;
+    }else{
+      sprintf(add, "LDR R0, FP, #%d\n", mapGetValue(symbol_table, token, symbol_table_size));
+      strcat(LC3, add);
+    }
+
+    token = strtok(NULL, whitespace); //should hold "+"
+    if(token == NULL) return;
+    token = strtok(NULL, whitespace); //should hold next variable
+
+    if(token == NULL) return;
+
+    while(token != NULL){
+      int isLiteral1 = 1;
+      tok_len = strlen(token); //token length
+
+      for(int i = 0; i < tok_len; i++){
+        if(token[i] < '0' || token[i] > '9'){
+          isLiteral1 = 0;
+        }
+      }
+
+      if(isLiteral1 == 1){          
+        sprintf(add, "ADD R0, R0, #%s\n", token);
+        strcat(LC3, add);
+      }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){
+        printf("ERROR on line %d: symbol '%s' not declared\n", linenum, token);
+        errors++;
+      }else{
+        sprintf(add, "LDR R1, FP, #%d\nADD R0, R0, R1\n", mapGetValue(symbol_table, token, symbol_table_size));
+        strcat(LC3, add);
+      }
+
+      token = strtok(NULL, whitespace); //token holds +
+
+      if(token == NULL) break;
+      if(strcmp(token, ";") == 0) break;
+      if(strcmp(token, "+") != 0) break;
+
+      token = strtok(NULL, whitespace); //token holds next variable
+    }
+    strcat(LC3, "R0, R5, #3\nRET\n");
+    return;
   }
 
   strcpy(store_var, token); //store_var now holds variable sum will be stored at
@@ -451,7 +518,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
           token = strtok(NULL, whitespace);
 
           //The thing below for %s should be taking in the offset NOT the token!!
-          sprintf(add, "LDR R%d, FP, %s\n", chr, token2); //(from example): add onto LC3 code - load y into R0
+          sprintf(add, "LDR R%d, FP, #%d\n", chr, mapGetValue(symbol_table, token2, symbol_table_size)); //(from example): add onto LC3 code - load y into R0
           strcat(LC3, add);
           if (strcmp(token, "+") == 0) {
             chr = 1;
@@ -481,7 +548,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
           strcat(LC3, add);
         }
         //STORE_VAR SHOULD BE THE TOKEN NOT HT EACTUAL VARIABLEEEE!!!
-        sprintf(add, "STR R0, FP, %s\n", store_var);
+        sprintf(add, "STR R0, FP, #%d\n", mapGetValue(symbol_table, store_var, symbol_table_size));
         strcat(LC3, add);
         token = strtok(NULL, whitespace);
       }
@@ -500,25 +567,28 @@ char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_si
     memset(current_line, '\0', 200);
     memset(hold_line, '\0', 200);
     char *LC3 = malloc(sizeof(char) * (1024));
+
+    if (LC3 == NULL) {
+      printf("Error: malloc has failed.\n");
+      exit(1);
+    }
+
     memset(LC3, '\0', 1024);
 
-    fgets(current_line, 1024, file);
-    fgets(current_line, 1024, file); //fgets twice to skip first function header line
+    fgets(current_line, 200, file);
+    fgets(current_line, 200, file); //fgets twice to skip first function header line
     strcpy(hold_line, current_line);
     char *token;// = strtok(current_line, whitespace);
-    int linenum = 1;
+    int linenum = 2;
     
   
     while (current_line != NULL) {
-      char semicol[] = "\n;";  
-      strcat(semicol, current_line);
-      strcat(semicol, ";\n");
-      strcat(LC3, semicol);
+      char semicol[204];
+      sprintf(semicol, "\n;%s\n", current_line); 
 
       token = strtok(current_line, whitespace);
-      if(strcmp(token, "return") == 0) {
-        break;
-      } else if (strcmp(token, "}") != 0) {
+      if (strcmp(token, "}") != 0) {
+        strcat(LC3, semicol);
         assign(symbol_table, symbol_table_size, hold_line, LC3, errors, linenum);
       } else {
         break;
@@ -550,13 +620,7 @@ int main(int argc, char** argv) {
   FILE *fp;
   int size;
   int isErr = 0;
-  char *LC3 = NULL;
-  LC3 = malloc(sizeof(char) * 4000);
-
-  if (LC3 == NULL) {
-    printf("Error: malloc has failed.\n");
-    exit(1);
-  }
+  char *LC3;
 
   struct pair *symbol_table = createSymbolTable(file, &size, &isErr);
   LC3 = read_operations(file, symbol_table, size, &isErr);
@@ -571,7 +635,7 @@ int main(int argc, char** argv) {
   char *string = mapToString(symbol_table, size);
   printf("%s\n%s\n", LC3, string);
 
-  fp = fopen("LC3.asm", "w+");
+  fp = fopen("LC3.asm", "w"); //GRACE was "w+" a typo or was it intentional?
   if (fp == NULL) {
     printf("Error: malloc has failed.\n");
     exit(1);
@@ -585,8 +649,6 @@ int main(int argc, char** argv) {
   symbol_table = NULL;
   free(string);
   string = NULL;
-  //free(LC3);
-  //LC3 = NULL;
   fclose(file);
   fclose(fp);
 
