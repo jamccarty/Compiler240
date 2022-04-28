@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
+//#include <ctype.h>
 #include "Map.h"
 
 char *whitespace = " \t\f\r\v\n";
@@ -496,6 +496,7 @@ char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_si
     rewind(file);
     char current_line[200];
     char hold_line[200];
+    
     memset(current_line, '\0', 200);
     memset(hold_line, '\0', 200);
     char *LC3 = malloc(sizeof(char) * (1024));
@@ -506,8 +507,14 @@ char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_si
     strcpy(hold_line, current_line);
     char *token;// = strtok(current_line, whitespace);
     int linenum = 1;
-
+    
+  
     while (current_line != NULL) {
+      char semicol[] = "\n;";  
+      strcat(semicol, current_line);
+      strcat(semicol, ";\n");
+      strcat(LC3, semicol);
+
       token = strtok(current_line, whitespace);
       if(strcmp(token, "return") == 0) {
         break;
@@ -535,6 +542,12 @@ int main(int argc, char** argv) {
   }
     
   FILE *file = fopen(argv[1], "r");
+  if (file == NULL) {
+    printf("Error: Unable to open file%s\n", argv[1]);
+    exit(1);
+  }
+
+  FILE *fp;
   int size;
   int isErr = 0;
   char *LC3 = NULL;
@@ -558,6 +571,14 @@ int main(int argc, char** argv) {
   char *string = mapToString(symbol_table, size);
   printf("%s\n%s\n", LC3, string);
 
+  fp = fopen("LC3.asm", "w+");
+  if (fp == NULL) {
+    printf("Error: malloc has failed.\n");
+    exit(1);
+  }
+
+  fputs(LC3, fp);
+  
   free(LC3);
   LC3 = NULL;
   free(symbol_table);
@@ -567,6 +588,7 @@ int main(int argc, char** argv) {
   //free(LC3);
   //LC3 = NULL;
   fclose(file);
-  
+  fclose(fp);
+
   return 0;
 }
