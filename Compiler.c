@@ -135,8 +135,20 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
         errors++;
         continue;
       } else {
-        strcpy(array[j], token);
-        j++;
+        //EDITED RECENTLY
+        int alreadyExists = 0;
+        for(int i = 0; i < j; i++){
+          if(strcmp(array[i], token) == 0){
+            printf("ERROR on line %d: variable %s already declared\n", linenumber, token);
+            errors++;
+            alreadyExists = 1;
+          }
+        }
+        if(alreadyExists == 0){
+          */
+          strcpy(array[j], token);
+          j++;
+        }
       }
 
       token = strtok(NULL, whitespace);
@@ -473,7 +485,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
       *err = errors;
       return;
     }
-    
+
     token = strtok(NULL, whitespace); //should hold next variable
 
     if(token == NULL) return;
