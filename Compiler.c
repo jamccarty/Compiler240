@@ -673,7 +673,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  FILE *fp;
+  FILE *output;
   int size;
   int isErr = 0;
   char *LC3;
@@ -692,13 +692,13 @@ int main(int argc, char** argv) {
   char *string = mapToString(symbol_table, size);
   printf("%s\nSymbol Table:\n=============\n%s", LC3, string);
 
-  fp = fopen("LC3.asm", "w"); //GRACE was "w+" a typo or was it intentional? Yes, UwU
-  if (fp == NULL) {
+  output = fopen("sample.lc3", "w"); //GRACE was "w+" a typo or was it intentional? It was intentional UwU
+  if (output == NULL) {
     printf("Error: malloc has failed.\n");
     exit(1);
   }
 
-  fputs(LC3, fp);
+  fputs(LC3, output);
   
   free(LC3);
   LC3 = NULL;
@@ -707,7 +707,7 @@ int main(int argc, char** argv) {
   free(string);
   string = NULL;
   fclose(file);
-  fclose(fp);
+  fclose(output);
 
   return 0;
 }
