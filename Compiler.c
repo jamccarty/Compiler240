@@ -603,7 +603,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
       sprintf(add, "ADD R0, R0, #%s; add %s to R0\n", token, token);
       strcat(LC3, add);
     }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){
-      printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
+      printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenum, token);
       errors++;
     }else{
       sprintf(add, "LDR R0, FP, #%d; read %s\n", mapGetValue(symbol_table, token, symbol_table_size), token);
@@ -637,7 +637,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
         sprintf(add, "ADD R0, R0, #%s; add %s to R0\n", token, token);
         strcat(LC3, add);
       }else if(mapGetValue(symbol_table, token, symbol_table_size) == 1){
-        printf("ERROR on line %d: symbol '%s' not declared\n", linenum, token);
+        printf("ERROR on line %d: Symbol '%s' not declared\n", linenum, token);
         errors++;
       } else {
         sprintf(add, "LDR R1, FP, #%d; read %s\nADD R0, R0, R1; put sum in R0\n", mapGetValue(symbol_table, token, symbol_table_size), token);
@@ -660,8 +660,14 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
   while (token != NULL) { //while loop to handle commasa 
     strcpy(store_var, token); //store_var now holds variable sum will be stored
     if (mapGetValue(symbol_table, token, symbol_table_size) == 1) { //if token does not exist in symbol_table, print error
-      printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
+      printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenum, token);
       errors++;
+      token = strtok(NULL, whitespace);
+      if ((strcmp(token, "=") != 0) && (strcmp(token, "+") != 0)) {
+        printf("ERROR on line %d: Need assignment operator\n", linenum);
+      } else {
+        token = strtok(NULL, whitespace);
+      }
     } else {
       token = strtok(NULL, whitespace); //token now holds "="
 
@@ -705,20 +711,22 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
           strcat(LC3, add);
           twoVar++;
         } else {
-          if (mapGetValue(symbol_table, token, symbol_table_size) == 1){
-          //if token does not exist in symbol_table, print error
-            printf("ERROR on line %d: variable '%s' has not been declared\n", linenum, token);
-            errors++;
-          } else {
-            twoVar++;
+          if ((strcmp(token, "=") != 0) && (strcmp(token, "+") != 0) &&
+            (strcmp(token, ",") != 0) && (strcmp(token, ";") != 0)) {
+            if (mapGetValue(symbol_table, token, symbol_table_size) == 1){
+            //if token does not exist in symbol_table, print error
+              printf("ERROR on line %d: Variable '%s' has not been declared\n", linenum, token);
+              errors++;
+            } else {
+              twoVar++;
+              sprintf(add, "LDR R%d, FP, #%d; read %s\n", chr, mapGetValue(symbol_table, token, symbol_table_size), token); //(from example): add onto LC3 code - load y into R0
+              strcat(LC3, add);
 
-            sprintf(add, "LDR R%d, FP, #%d; read %s\n", chr, mapGetValue(symbol_table, token, symbol_table_size), token); //(from example): add onto LC3 code - load y into R0
-            strcat(LC3, add);
-
-            token = strtok(NULL, whitespace);
-            if (strcmp(token, "+") == 0) {
-              chr = 1;
-              change = 1;
+              token = strtok(NULL, whitespace);
+              if (strcmp(token, "+") == 0) {
+                chr = 1;
+                change = 1;
+              }
             }
           }
         }
@@ -838,8 +846,17 @@ int main(int argc, char** argv) {
     fclose(file);
     exit(1);
   }
-
+  
   LC3 = read_operations(file, symbol_table, size, &isErr);  
+
+  if (isErr > 0) {
+    free(symbol_table);
+    symbol_table = NULL;
+    fclose(file);
+    free(LC3);
+    LC3 = NULL;
+    exit(1);
+  }
 
   char *string = mapToString(symbol_table, size);
   printf("%s\nSymbol Table:\n=============\n%s", LC3, string);
