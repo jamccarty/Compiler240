@@ -10,10 +10,10 @@ int isDigit(char* string){
 
   for(int i = 0; i < len; i++){
     if(string[i] < '0' || string[i] > '9'){
-      return 1;
+      return 0;
     }
   }
-  return 0;
+  return 1;
 }
 
 int exists(char *var, char **params, int params_len, char** local_vars, int local_vars_len){
@@ -77,7 +77,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
 
       if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) && (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) {
 
-        if(isDigit(token) == 1 && exists(token, params, params_len, array, j) == 0){
+        if(isDigit(token) == 0 && exists(token, params, params_len, array, j) == 0){
           printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
           errors++;
         }
@@ -129,44 +129,69 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         printf("ERROR on line %d: Missing variable name!\n", linenumber);
         errors++;
       }
-    } else if (strcmp(token, "int") != 0) {
-      if(exists(token, params, params_len, array, j) == 0){
-        if(strcmp(token, "=") == 0){
-          printf("ERROR on line %d: Missing variable name!\n", linenumber);
-          errors++;
-        } else {
-          hold_token = token;
-          token = strtok(NULL, whitespace);
+    }else if (strcmp(token, "int") != 0) {
+      if(strcmp(token, "=") == 0){
+        printf("ERROR on line %d: Missing variable name!\n", linenumber);
+        errors++;
+      }else if(exists(token, params, params_len, array, j) == 0){
+        printf("ERROR on line %d: variable %s has not been declared\n", linenumber, token);
+        errors++;
+      }else{
+        hold_token = token;
+        token = strtok(NULL, whitespace);
           
-          if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
-            (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0) &&
-            (strcmp(hold_token, ";") != 0) && (strcmp(hold_token, "=") != 0) &&
-            (strcmp(hold_token, ",") != 0) && (strcmp(hold_token, "+") != 0)) {
-            printf("ERROR on line %d: Illegal type \"%s\"\n", linenumber, hold_token);
-            errors++;
-          } else if (strcmp(token, "=") == 0) {
-            token = strtok(NULL, whitespace);
-            while (1) {
-              if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
-                (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) { 
+        if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
+        (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0) &&
+        (strcmp(hold_token, ";") != 0) && (strcmp(hold_token, "=") != 0) &&
+        (strcmp(hold_token, ",") != 0) && (strcmp(hold_token, "+") != 0)) {
+        printf("ERROR on line %d: Illegal type \"%s\"\n", linenumber, hold_token);
+          errors++;
+        } else if (strcmp(token, "=") == 0) {
+          token = strtok(NULL, whitespace);
+          while (1) {
+            if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
+            (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) { 
+
+              if(isDigit(token) == 0 && exists(token, params, params_len, array, j) == 0){
+                printf("ERROR on line %d: variable %s has not been declared\n", linenumber, token);
+                errors++;
+              }
+              token = strtok(NULL, whitespace); //get next variable
+              if(token == NULL){
+                printf("ERROR on line %d: line must end in ';'\n", linenumber);
+                break;
+              }
+              if (strcmp(token, "+") == 0) {
                 token = strtok(NULL, whitespace);
-                if (strcmp(token, "+") == 0) {
-                  token = strtok(NULL, whitespace);
-                  if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0) ||
-                    (strcmp(token, "+") == 0) || (token == NULL)) {
-                    printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
-                    errors++;
-                    break;
-                  }
+                if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0) ||
+                (strcmp(token, "+") == 0) || (token == NULL)) {
+                  printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
+                  errors++;
+                  break;
                 }
+              }else if(strcmp(token, ";") == 0){
+                break;
+              }
+            }
+            if(strcmp(token, "+") == 0){
+              printf("ERROR on line %d: need value before addition operator!\n", linenumber);
+              errors++;
+              token = strtok(NULL, whitespace);
+              if(token == NULL){
+                printf("ERROR on line %d: line must end in ';'\n", linenumber);
+                errors++;
               }
             }
           }
         }
-        token = hold_token;
+        token = hold_token; //^^above is where else statement ends
         continue;
       }
-      
+      int token_length = strlen(token);
+      char *hold = malloc(sizeof(char) * (token_length + 1));
+      memset(hold, '\0', token_length + 1);
+      strcpy(hold, token);
+
       token = strtok(NULL, whitespace);
       if (strcmp(token, "=") == 0) {
         token = strtok(NULL, whitespace);
@@ -177,6 +202,9 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         } else if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0)) {
           printf("ERROR on line %d: Missing variable!\n", linenumber);
           errors++;
+        }else if(exists(token, params, params_len, array, j) == 0){
+          printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+          errors++;
         } else if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
           (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) {
           token = strtok(NULL, whitespace);
@@ -185,14 +213,25 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
             errors++;
           } else if (strcmp(token, "+") == 0) {
             token = strtok(NULL, whitespace);
+
+            if(token == NULL) continue;
+
             if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0) ||
               (strcmp(token, ",") == 0) || (strcmp(token, "+") == 0) || (token == NULL)) {
               printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
               errors++;
-            } 
+            } else if(exists(token, params, params_len, array, j) == 0){
+              printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+              errors++;
+            }
           }
         }
+      }else{
+        printf("ERROR on line %d: unrecognized type '%s'\n", linenumber, hold);
+        errors++;
       }
+      free(hold);
+      hold = NULL;
     } else {
       token = strtok(NULL, whitespace); //variable name
       if(token == NULL){ //if no variable name
@@ -208,15 +247,11 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         continue;
       } else {
         //EDITED RECENTLY
-        int alreadyExists = 0;
-        for(int i = 0; i < j; i++){
-          if(strcmp(array[i], token) == 0){
-            printf("ERROR on line %d: variable %s already declared\n", linenumber, token);
-            errors++;
-            alreadyExists = 1;
-          }
-        }
-        if(alreadyExists == 0){
+
+        if(exists(token, params, params_len, array, j) == 1){
+          printf("ERROR on line %d: variable %s already declared\n", linenumber, token);
+          errors++;
+        }else{
           strcpy(array[j], token);
           j++;
         }
@@ -289,13 +324,16 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         }
 
         token = strtok(NULL, whitespace);
+
+        if(token == NULL) continue;
+
         while (1) {
           if (strcmp(token, ",") == 0) {
             break;
           } else if (strcmp(token, "+") == 0) {
             token = strtok(NULL, whitespace);
           } else if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0)) {
-           break;
+            break;
           } else if ((strcmp(token, ";") != 0) && (strcmp(token, ",") != 0)
             && (strcmp(token, "=") != 0) && (strcmp(token, "+") != 0)) {
             printf("ERROR on line %d: Need operator between values!\n", linenumber);
@@ -305,6 +343,10 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
           }
 
           token = strtok(NULL, whitespace);
+        }
+
+        if(strcmp(token, ";") == 0){
+          continue;
         }
 
         while (strcmp(token, ";") != 0) {
