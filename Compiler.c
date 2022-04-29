@@ -5,8 +5,37 @@
 
 char *whitespace = " \t\f\r\v\n";
 
-char** parse_line(FILE *file, char** array, int *len, int* err) {
+int isDigit(char* string){
+  int len = strlen(string);
+
+  for(int i = 0; i < len; i++){
+    if(string[i] < '0' || string[i] > '9'){
+      return 1;
+    }
+  }
+  return 0;
+}
+
+int exists(char *var, char **params, int params_len, char** local_vars, int local_vars_len){
+
+  for(int i = 0; i < params_len; i++){
+    if(strcmp(params[i], var) == 0){
+      return 1;
+    }
+  }
+
+  for(int i = 0; i < local_vars_len; i++){
+    if(strcmp(local_vars[i], var) == 0){
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+char** parse_line(FILE *file, char** array, int *len, int* err, char **params, const int params_len) {
   int errors = *err;
+  int break_loop_count = 0;
   rewind(file);
     
   if (file == NULL) {
@@ -27,38 +56,81 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
     linenumber++;
     token = strtok(line, whitespace);
 
+    if(token == NULL){
+      if(break_loop_count == 10) break;
+      break_loop_count++;
+      continue;
+    }
+
     if (strcmp(token, "}") == 0) {
       break;
     }
 
     if(strcmp(token, "return") == 0){
-      token = strtok(NULL, whitespace);
-      if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
-        (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) {
-        token = strtok(NULL, whitespace);
+      token = strtok(NULL, whitespace); //should now hold ";" or variable name
+
+      if(token == NULL){
+        printf("ERROR on line %d: line must end in ';'\n", linenumber);
+        errors++;
+        continue;
+      }
+
+      if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) && (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) {
+
+        if(isDigit(token) == 1 && exists(token, params, params_len, array, j) == 0){
+          printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+          errors++;
+        }
+
+        token = strtok(NULL, whitespace); //should now hold "+" or ";"
+
         if (token == NULL) {
           printf("ERROR on line %d: Doesn't end with semicolon!\n", linenumber);
           errors++;
-        } else if (strcmp(token, "+") == 0) {
-          token = strtok(NULL, whitespace);
-          if (strcmp(token, ";") == 0) {
-            printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
-            errors++;
+          continue;
+        }
+
+        if(strcmp(token, ";") == 0) continue;
+
+        if (strcmp(token, "+") == 0) {
+          while(token != NULL){
+            token = strtok(NULL, whitespace); //should now contain variable or digit 
+
+            if(token == NULL){
+              printf("ERROR on line %d: line must end in ';'\n", linenumber);
+            }
+
+            if (strcmp(token, ";") == 0) {
+              printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
+              errors++;
+              break;
+            }
+
+            if(isDigit(token) == 1 && exists(token, params, params_len, array, j) == 0){
+              printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+              errors++;
+            }
+
+            token = strtok(NULL, whitespace); //token should contain "+" or ";"
+
+            if(token == NULL){
+              printf("ERROR on line %d: line must end in ';'\n", linenumber);
+            }
+
+            if(strcmp(token, ";") == 0){
+              break;
+            }
           }
         }
+        continue;
+      } else if(strcmp(token, ";") == 0){
+        continue;
       } else {
         printf("ERROR on line %d: Missing variable name!\n", linenumber);
         errors++;
       }
     } else if (strcmp(token, "int") != 0) {
-      int fits = 0;
-      for(int i = 0; i < j; i++){
-        if(strcmp(token, array[i]) == 0){
-          fits = 1;
-        }
-      }
-
-      if(fits == 0){
+      if(exists(token, params, params_len, array, j) == 0){
         if(strcmp(token, "=") == 0){
           printf("ERROR on line %d: Missing variable name!\n", linenumber);
           errors++;
@@ -145,7 +217,6 @@ char** parse_line(FILE *file, char** array, int *len, int* err) {
           }
         }
         if(alreadyExists == 0){
-          */
           strcpy(array[j], token);
           j++;
         }
@@ -388,7 +459,7 @@ struct pair* createSymbolTable(FILE *file, int *size, int *isErrors){
   }
 
   params = parse_function_header(file, params, &params_len, &errors);
-  local_vars = parse_line(file, local_vars, &local_vars_len, &errors);
+  local_vars = parse_line(file, local_vars, &local_vars_len, &errors, params, params_len);
 
   if(errors > 0){
     printf("%d errors found\n", errors);
@@ -481,7 +552,7 @@ void assign(struct pair *symbol_table, const int symbol_table_size, char *curren
     if(token == NULL) return;
 
     if(strcmp(token, ";") == 0){
-      strcat(LC3, "STR R0, FP, #3\nRET\n");
+      strcat(LC3, "STR R0, FP, #3; write RV\nRET\n");
       *err = errors;
       return;
     }
@@ -678,7 +749,7 @@ char *read_operations(FILE *file, struct pair *symbol_table, int symbol_table_si
 }
 
 int main(int argc, char** argv) {
-  if(argc < 2){
+  if (argc < 2) {
     printf("Error: A filename must be entered.\n");
     exit(1);
   } else if (argc > 2) {
