@@ -70,7 +70,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
       token = strtok(NULL, whitespace); //should now hold ";" or variable name
 
       if(token == NULL){
-        printf("ERROR on line %d: line must end in ';'\n", linenumber);
+        printf("ERROR on line %d: Doesn't end with semicolon!\n", linenumber);
         errors++;
         continue;
       }
@@ -78,7 +78,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
       if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) && (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) {
 
         if(isDigit(token) == 0 && exists(token, params, params_len, array, j) == 0){
-          printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+          printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
           errors++;
         }
 
@@ -97,7 +97,8 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
             token = strtok(NULL, whitespace); //should now contain variable or digit 
 
             if(token == NULL){
-              printf("ERROR on line %d: line must end in ';'\n", linenumber);
+              printf("ERROR on line %d: Doesn't end with semicolon!\n", linenumber);
+              errors++;
             }
 
             if (strcmp(token, ";") == 0) {
@@ -107,14 +108,15 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
             }
 
             if(isDigit(token) == 1 && exists(token, params, params_len, array, j) == 0){
-              printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+              printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
               errors++;
             }
 
             token = strtok(NULL, whitespace); //token should contain "+" or ";"
 
             if(token == NULL){
-              printf("ERROR on line %d: line must end in ';'\n", linenumber);
+              printf("ERROR on line %d: Doesn't end with semicolon!\n", linenumber);
+              errors++;
             }
 
             if(strcmp(token, ";") == 0){
@@ -129,17 +131,24 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         printf("ERROR on line %d: Missing variable name!\n", linenumber);
         errors++;
       }
-    }else if (strcmp(token, "int") != 0) {
+    } else if (strcmp(token, "int") != 0) {
       if(strcmp(token, "=") == 0){
         printf("ERROR on line %d: Missing variable name!\n", linenumber);
         errors++;
-      }else if(exists(token, params, params_len, array, j) == 0){
-        printf("ERROR on line %d: variable %s has not been declared\n", linenumber, token);
-        errors++;
-      }else{
+      } else if(exists(token, params, params_len, array, j) == 0) {
+        if ((strcmp(token, "int") != 0) && (strcmp(token, "=") != 0) &&
+          (strcmp(token, "+") != 0) && (strcmp(token, ";") != 0) &&
+          (strcmp(token, ",") != 0)) {
+          if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
+            (strcmp(token, ",") == 0) || (strcmp(token, "+") == 0)) {
+            printf("WHY ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
+            errors++;
+          }
+        }
+      } else{
         hold_token = token;
         token = strtok(NULL, whitespace);
-          
+
         if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
         (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0) &&
         (strcmp(hold_token, ";") != 0) && (strcmp(hold_token, "=") != 0) &&
@@ -153,12 +162,13 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
             (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) { 
 
               if(isDigit(token) == 0 && exists(token, params, params_len, array, j) == 0){
-                printf("ERROR on line %d: variable %s has not been declared\n", linenumber, token);
+                printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
                 errors++;
               }
               token = strtok(NULL, whitespace); //get next variable
               if(token == NULL){
-                printf("ERROR on line %d: line must end in ';'\n", linenumber);
+                printf("ERROR on line %d: Doesn't end with semicolon!\n", linenumber);
+                errors++;
                 break;
               }
               if (strcmp(token, "+") == 0) {
@@ -174,11 +184,11 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
               }
             }
             if(strcmp(token, "+") == 0){
-              printf("ERROR on line %d: need value before addition operator!\n", linenumber);
+              printf("ERROR on line %d: Need value before addition operator!\n", linenumber);
               errors++;
               token = strtok(NULL, whitespace);
               if(token == NULL){
-                printf("ERROR on line %d: line must end in ';'\n", linenumber);
+                printf("ERROR on line %d: Doesn't end with semicolon!\n", linenumber);
                 errors++;
               }
             }
@@ -202,8 +212,8 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         } else if ((strcmp(token, ";") == 0) || (strcmp(token, ",") == 0)) {
           printf("ERROR on line %d: Missing variable!\n", linenumber);
           errors++;
-        }else if(exists(token, params, params_len, array, j) == 0){
-          printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+        } else if(exists(token, params, params_len, array, j) == 0){
+          printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
           errors++;
         } else if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
           (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) {
@@ -220,15 +230,27 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
               (strcmp(token, ",") == 0) || (strcmp(token, "+") == 0) || (token == NULL)) {
               printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
               errors++;
-            } else if(exists(token, params, params_len, array, j) == 0){
-              printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+            } else if (exists(token, params, params_len, array, j) == 0) {
+              printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
               errors++;
+              token = strtok(NULL, whitespace);
             }
           }
         }
-      }else{
-        printf("ERROR on line %d: unrecognized type '%s'\n", linenumber, hold);
-        errors++;
+      } else if ((strcmp(token, "=") != 0) && (strcmp(hold, "=") != 0)) {
+          printf("ERROR on line %d: Illegal type \"%s\"\n", linenumber, hold);
+          errors++;
+      }
+
+      while (strcmp(token, "+") == 0) {
+        token = strtok(NULL, whitespace);
+        if ((strcmp(token, "=") != 0) && (strcmp(token, ",") != 0) &&
+          (strcmp(token, ";") != 0) && (strcmp(token, "+") != 0)) {
+          token = strtok(NULL, whitespace);
+        } else {
+          printf("ERROR on line %d: Need value after addition operator!\n", linenumber);
+          errors++;
+        }
       }
       free(hold);
       hold = NULL;
@@ -245,11 +267,9 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         printf("ERROR on line %d: Missing variable name!\n", linenumber);
         errors++;
         continue;
-      } else {
-        //EDITED RECENTLY
-
+      } else{
         if(exists(token, params, params_len, array, j) == 1){
-          printf("ERROR on line %d: variable %s already declared\n", linenumber, token);
+          printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
           errors++;
         }else{
           strcpy(array[j], token);
@@ -504,7 +524,7 @@ struct pair* createSymbolTable(FILE *file, int *size, int *isErrors){
   local_vars = parse_line(file, local_vars, &local_vars_len, &errors, params, params_len);
 
   if(errors > 0){
-    printf("%d errors found\n", errors);
+    printf("%d error(s) found\n", errors);
     *isErrors = 1;
   }
 
