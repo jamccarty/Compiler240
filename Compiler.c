@@ -136,12 +136,20 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         printf("ERROR on line %d: Missing variable name!\n", linenumber);
         errors++;
       } else if(exists(token, params, params_len, array, j) == 0) {
-        if ((strcmp(token, "int") != 0) && (strcmp(token, "=") != 0) &&
-          (strcmp(token, "+") != 0) && (strcmp(token, ";") != 0) &&
-          (strcmp(token, ",") != 0)) {
+        if ((strcmp(token, "=") != 0) &&
+        (strcmp(token, "+") != 0) && (strcmp(token, ";") != 0) &&
+        (strcmp(token, ",") != 0)) {
+          
+          if(isDigit(token) == 1){
+            printf("ERROR on line %d: value cannot be set to number\n", linenumber);
+            errors++;
+          }else if(exists(token, params, params_len, array, j) == 0){
+            printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
+            errors++;
+          }
           if ((strcmp(token, ";") == 0) || (strcmp(token, "=") == 0) ||
             (strcmp(token, ",") == 0) || (strcmp(token, "+") == 0)) {
-            printf("WHY ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
+            printf("ERROR on line %d: missing variable name\n", linenumber);
             errors++;
           }
         }
@@ -213,7 +221,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
           printf("ERROR on line %d: Missing variable!\n", linenumber);
           errors++;
         } else if(exists(token, params, params_len, array, j) == 0){
-          printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
+          printf("ERROR on line %d: variable '%s' has not been declared\n", linenumber, token);
           errors++;
         } else if ((strcmp(token, ";") != 0) && (strcmp(token, "=") != 0) &&
           (strcmp(token, ",") != 0) && (strcmp(token, "+") != 0)) {
@@ -269,7 +277,7 @@ char** parse_line(FILE *file, char** array, int *len, int* err, char **params, c
         continue;
       } else{
         if(exists(token, params, params_len, array, j) == 1){
-          printf("ERROR on line %d: Uses variable '%s' that has not been declared\n", linenumber, token);
+          printf("ERROR on line %d: redeclaration of variable '%s' that has already been declared\n", linenumber, token);
           errors++;
         }else{
           strcpy(array[j], token);
@@ -859,9 +867,19 @@ int main(int argc, char** argv) {
   }
 
   char *string = mapToString(symbol_table, size);
-  printf("%s\nSymbol Table:\n=============\n%s", LC3, string);
+  //printf("%s\nSymbol Table:\n=============\n%s", LC3, string);
 
-  output = fopen("sample.lc3", "w"); //GRACE was "w+" a typo or was it intentional? It was intentional UwU
+  int arglen = strlen(argv[1]);
+  char *filename = malloc(sizeof(char) * (arglen + 1));
+  memset(filename, '\0', arglen);
+  sprintf(filename, "%s", argv[1]);
+
+  filename[arglen-4] = 'a';
+  filename[arglen-3] = 's';
+  filename[arglen-2] = 'm';
+  filename[arglen-1] = '\0';
+
+  output = fopen(filename, "w"); //GRACE was "w+" a typo or was it intentional? It was intentional UwU
   if (output == NULL) {
     printf("Error: malloc has failed.\n");
     exit(1);
