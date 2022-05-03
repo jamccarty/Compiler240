@@ -37,7 +37,7 @@ How to Run:
 
 Approximate Hours worked:
 =========================
-    30-45 hours, over the course of roughly 3 weeks.
+    30-45 hours each, over the course of roughly 3 weeks.
 
 Known Bugs or Limitations:
 ==========================
