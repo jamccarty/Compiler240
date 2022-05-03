@@ -2,12 +2,16 @@
 
 DESCRIPTION:
 ============
-    A simplified compiler capable of parsing variable/parameter declarations and initializations for single-function programs.
-    Compiler240 is capable of converting basic addition into a non-professional, textbook Assembly code created for use
-    in this class (known as LC3). Reliably detects syntax errors and errors in declaration.
+    A simplified compiler capable of parsing variable/parameter declarations and initializations 
+    for single-function programs. Compiler240 is capable of converting basic addition into a 
+    non-professional, textbook Assembly code created for use in this class (known as LC3). 
+    Reliably detects syntax errors and errors in declaration.
 
-    An LC3 machine simulator can be downloaded here: https://drive.google.com/file/d/1iK0KW0s8rFWPTE6F18FJNIbFNjNwCE6W/view
-    although this link may break by end of school year.
+    An LC3 machine simulator can be downloaded here: 
+    
+    https://drive.google.com/file/d/1iK0KW0s8rFWPTE6F18FJNIbFNjNwCE6W/view
+    
+    although this link may break by end of spring semester 2022.
 
 Contributers:
 =====
@@ -37,5 +41,6 @@ Approximate Hours worked:
 
 Known Bugs or Limitations:
 ==========================
-    Reliably detects errors in type when declaring a new variable (i.e. "cat a = 6 ;"), however also throws an additional
-    error that says that the variable "cat" has not been declared.
+    Reliably detects errors in type when declaring a new variable (i.e. "cat a = 6 ;"), 
+    however also throws an additional error that says that the variable "cat" has not 
+    been declared.
