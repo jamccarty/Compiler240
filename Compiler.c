@@ -874,9 +874,9 @@ int main(int argc, char** argv) {
   memset(filename, '\0', arglen);
   sprintf(filename, "%s", argv[1]);
 
-  filename[arglen-4] = 'a';
-  filename[arglen-3] = 's';
-  filename[arglen-2] = 'm';
+  filename[arglen-4] = 'l';
+  filename[arglen-3] = 'c';
+  filename[arglen-2] = '3';
   filename[arglen-1] = '\0';
 
   output = fopen(filename, "w"); //GRACE was "w+" a typo or was it intentional? It was intentional UwU
