@@ -1,6 +1,6 @@
 # Compiler240
 
-DESCRIPTION:
+Description:
 ============
     A simplified compiler capable of parsing variable/parameter declarations and initializations 
     for single-function programs. Compiler240 is capable of converting basic addition into a 
